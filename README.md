@@ -1,2 +1,2 @@
-# Oracle
+# selfstudy
 Not required
