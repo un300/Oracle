@@ -31,19 +31,23 @@ library(stringr)
 # 실행결과 동 이름이 3글자인 경우와 4글자인 경우가 있으므로 지정한 자리만큼
 # 글자를 추출하면 3글자인 동은 숫자가 포함된다.
 # 공백과 숫자를 제거하자
-ck[933,1]
 
+
+# 1. str_extract()사용
 temp1 <- substr(ck$address, 12, 15)
 dong <- str_extract(temp1, '[가-힇]+동')
 dong[is.na(dong)] <- 'X'
 
-ck$dong <- dong
+ck$dong <- as.factor(dong)
 
 
+# 2. gsub() 사용
+library(stringr)
+temp1 <- substr(ck$address, 11, 16)
+dong2 <- gsub('[[:blank:]]|[0-9]$', '', temp1)
 
 
-as_tibble(ck)
-
+ck$dong2 <- as.factor(dong2)
 
 
 
@@ -58,7 +62,7 @@ as_tibble(ck)
 table(dong)
 
 ck_dong <- ck %>% 
-  group_by(dong) %>% 
+  group_by(dong2) %>% 
   summarise(cnt = n())
 
 ck_dong
@@ -76,18 +80,11 @@ library(treemap)
 
 ?treemap
 treemap(data.frame(ck_dong), 
-        index = "dong", 
+        index = "dong2", 
         vSize = "cnt", 
         vColor = 'GNI',
         type = 'index',
         title = "배달 가즈아")
-
-
-
-
-
-
-
 
 
 
