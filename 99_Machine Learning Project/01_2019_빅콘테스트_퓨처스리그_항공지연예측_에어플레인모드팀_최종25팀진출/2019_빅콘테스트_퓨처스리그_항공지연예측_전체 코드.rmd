@@ -1,0 +1,1015 @@
+---
+title: "빅 콘테스트"
+author: "Jong Soo"
+date: '2019 9 9 '
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+### *팀명 : 에어플레인모드*
+#### 팀원 : 이재원, 황종수, 손희헌, 이소정
+##### 퓨처스리그 참가 
+
+# **목차** . 
+
+- 1. EDA
+- 2. 전처리 및 파생변수 생성 
+- 3. 분석 
+
+
+-라이브 러리 세팅 
+```{r, include=FALSE}
+library(ggplot2)
+library(lubridate)
+library(mlr)
+library(gridExtra)
+library(grid)
+## 라이브러리 세팅
+{
+  if(!require(caret)) {install.packages("caret")};  library(caret);
+  if(!require(MLmetrics)) {install.packages("MLmetrics")};  library(MLmetrics);
+  if(!require(e1071)) {install.packages("e1071")};  library(e1071);
+  if(!require(kknn)) {install.packages("kknn")};  library(kknn);
+  if(!require(dplyr)) {install.packages("dplyr")};  library(dplyr);
+  if(!require(ROCR)) {install.packages("ROCR")};  library(ROCR);
+  if(!require(randomForest)) {install.packages("randomForest")};  library(randomForest);
+  if(!require(doParallel)) {install.packages("doParallel")};  library(doParallel);
+  if(!require(parallel)) {install.packages("parallel")};  library(parallel);
+  if(!require(doSNOW)) {install.packages("doSNOW")};  library(doSNOW);
+  if(!require(kernlab)) {install.packages("kernlab")};  library(kernlab);
+  if(!require(naivebayes)) {install.packages("naivebayes")};  library(naivebayes);
+  if(!require(xgboost)) {install.packages("xgboost")};  library(xgboost);
+}
+```
+
+
+
+# 1. EDA (탐색적 데이터 분석)
+- 데이터 불러오기 
+- 퓨처스 리그 데이터인 AFSNT.csv , AFSNT_DLY.csv 를 불러 온다. 
+```{r }
+rm(list=ls())
+AFSNT <- read.csv("C:/Desktop/Son/공모전/빅콘 2019/최종 데이터 및 코드/AFSNT.csv")
+AFSNT_DLY <- read.csv("C:/Desktop/Son/공모전/빅콘 2019/최종 데이터 및 코드/AFSNT_DLY.csv")
+AFSNT$dly <- as.numeric(AFSNT$DLY=="Y")
+{
+  AFSNT$SDT_YY <- as.factor(AFSNT$SDT_YY)
+  AFSNT$SDT_MM <- as.factor(AFSNT$SDT_MM)
+  AFSNT$SDT_DY <- as.factor(AFSNT$SDT_DY)
+}
+```
+
+## 데이터 크기 확인 
+```{r}
+# 결측치 확인 
+apply(is.na(AFSNT),MARGIN = 2 , FUN = "sum") 
+dim(AFSNT)
+summarizeColumns(AFSNT)[,c(1,2,10)]
+```
+
+- 결측치는 없는 것 으로 확인 . 
+- 2017~2019.6 까지의 데이터 
+- dim(AFSNT)    #[1] 987709     17
+- 출발 도착 구분이 되어있음. 
+- 공항은 15개의 레벨 
+- 항공사는 12개의 레벨 
+
+
+#### EDA 사용자 함수 생성 
+```{r}
+
+EDA1 = function(x){
+  temp <- AFSNT[,x] %>% 
+    table() %>%
+    data.frame() 
+  colnames(temp) <- c("variable","N")  
+  temp2 <- temp %>% 
+    ggplot(aes(x=variable, y=N,fill=variable))+
+    geom_bar(stat='identity')+ ggtitle(x) 
+  if (max(nchar(as.character(temp[,1])))>= 5){
+    return(temp2 +
+    theme(axis.text.x=element_text(angle=45, hjust=1)))
+  }
+  else return(temp2)
+} 
+
+guides_size = function(x){
+  return(guides(fill = guide_legend(keywidth = x, keyheight = x)))
+}
+```
+
+
+
+## 날짜 관련된 변수 빈도 살펴보기 
+
+```{r}
+grid.arrange(EDA1("SDT_YY")+guides_size(0.5),EDA1("SDT_MM")+guides_size(0.2),
+             EDA1("SDT_DD")+guides_size(0.1),EDA1("SDT_DY")+guides_size(0.4),
+             nrow = 2 , ncol = 2)
+```
+
+- 데이터가 2017~2019.6 까지의 데이터라서 7~12월 빈도수가 상대적으로 부족함 .
+(월별로 운항횟수를 체크 해보아야 할 것 같다. )
+- 골고루 분포되어있음을 알수있음 
+
+
+## 연도그룹간 월별 운행횟수 살펴보기 
+빈도 표에 약간의 빈도 차이가 있어서 확인 해 보았다 . 
+```{r}
+AFSNT %>% group_by(SDT_YY,SDT_MM) %>% summarise(n=n())-> tempdf1
+tempdf1$SDT_YY <- as.factor(tempdf1$SDT_YY)
+tempdf1$SDT_MM <- as.numeric(tempdf1$SDT_MM)
+ggplot(tempdf1, aes(x=SDT_MM,y=n,color=SDT_YY)) + geom_line(size=3)
+```
+
+년도마다 운행횟수는 같은 패턴을 가짐을 알 수 있었다 . 
+
+## 공항 관련 변수 살펴보기 
+```{r}
+grid.arrange(EDA1("ARP")+guides_size(0.1),EDA1("ODP")+guides_size(0.1),
+             nrow=2)
+```
+
+- ARP3 공항에서 가장 많은 운행 기록이 있었음을 알 수 있다.
+- 다음으로는 ARP1 ARP2 와 작은 공항들이 있음을 알 수 있다 .
+- 공항마다 지연여부의 차이가 있는지를 생각해보아야겠다 . 
+- 운행 정보가 거의 없는 공항들도 있었다 . 
+
+## 그 외 나머지 변수들 살펴보기 
+
+```{r}
+grid.arrange(EDA1("FLO")+guides_size(0.1),EDA1("AOD")+guides_size(0.1),
+             EDA1("IRR"),EDA1("DLY"),ncol=2)
+table(AFSNT$DLY)/nrow(AFSNT)    # 지연 12퍼센트 
+```
+
+- 먼저 항공사 변수를 살펴보자면 J항공사의 운항횟수가 월등히 많았고 , 그 뒤를 이어서 A, B, H 항공사 정도가 있었다 .  5개의 항공사 (C,D,E,G,K) 는 운항횟수가 거의 없었다 . 
+- 출도착은 거의 같은 비율이었고 , 출 도착별로 특징이 다른지 구분 해 봐야겠다 . 
+- 부정기편은 진짜 거의 없는 편 .
+- 지연 운행은 전체 데이터의 12퍼센트 정도 . ( 출발 도착이 다른지 체크해보자 )
+
+# 지연 여부와 관련하여서 보기 
+# 변수 레벨에 따라 평균 지연율을 관찰 해보자 . 
+
+### 출발 도착을 구분하여 살펴보기 
+
+```{r}
+AFSNT %>% group_by(AOD) %>% summarise(mean_dly=mean(dly)) %>% ggplot(aes(x=AOD,y=mean_dly,fill=AOD)) + geom_bar(stat="identity")
+```
+
+- 출발 도착 구분간에 평균 지연율이 큰 차이를 보였다 . 
+- 이러한 점과 나중에 모델에 적용시킬 때 더 좋은 성능을 보일 것으로 생각하여 이제 
+출발 도착 데이터를 나눠서 분석 해보도록 하겠다 . 
+
+
+## 연도 별 평균 지연율 살펴보기 
+
+```{r}
+# 출발
+AFSNT %>% filter(AOD == "D") %>% group_by(SDT_YY) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=SDT_YY,y=dly_mean,fill=SDT_YY)) + geom_bar(stat="identity") + ggtitle("D (출발)")-> g1
+# 도착 
+AFSNT %>% filter(AOD == "A") %>% group_by(SDT_YY) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=SDT_YY,y=dly_mean,fill=SDT_YY)) + geom_bar(stat="identity") + ggtitle("A (도착)")-> g2
+
+grid.arrange(g1,g2,ncol=2)
+
+```
+
+- (출발 도착 공통)
+- 2018년도에 지연율이 가장 높았음을 알 수 있다 . 
+- 2019년도에는 지연율이 비교적 낮은편 . 
+
+- (다른 점)
+- 출발 운행 정보에서 평균 지연율이 비교적 더 높았다 . 
+
+## 월 별 평균 지연율 살펴보기 
+
+```{r}
+# 출발
+AFSNT %>% filter(AOD == "D") %>% group_by(SDT_MM) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=SDT_MM,y=dly_mean,fill=SDT_MM)) + geom_bar(stat="identity") + ggtitle("D (출발)") -> g1
+# 도착 
+AFSNT %>% filter(AOD == "A") %>% group_by(SDT_MM) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=SDT_MM,y=dly_mean,fill=SDT_MM)) + geom_bar(stat="identity") + ggtitle("A (도착)")-> g2
+
+grid.arrange(g1,g2,ncol=2)
+```
+
+- 3월의 평균 지연율이 가장 낮았고 , 1,2,4,8 월의 평균 지연율이 높은 편이었다 . 
+- 도착에서의 평균 지연율은 출발에 비해 낮았다 . 
+
+## 요일 별 평균 지연율 살펴보기 
+
+```{r}
+# 출발
+AFSNT %>% filter(AOD == "D") %>% group_by(SDT_DY) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=SDT_DY,y=dly_mean,fill=SDT_DY)) + geom_bar(stat="identity") + ggtitle("D (출발)") -> g1
+# 도착 
+AFSNT %>% filter(AOD == "A") %>% group_by(SDT_DY) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=SDT_DY,y=dly_mean,fill=SDT_DY)) + geom_bar(stat="identity") + ggtitle("A (도착)")-> g2
+
+grid.arrange(g1,g2,ncol=2)
+```
+
+- 요일 별로 지연율 평균이 다르다는 것을 확인 하였다 . 
+- 금요일 평균 지연율이 가장 높았고 , 토요일이 가장 낮은 것을 확인 하였다. 
+
+
+## 공항 별 평균 지연율 살펴보기 
+
+```{r}
+# 출발
+AFSNT %>% filter(AOD == "D") %>% group_by(ARP) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=ARP,y=dly_mean,fill=ARP)) + geom_bar(stat="identity") + ggtitle("D (출발)") + theme(axis.text.x=element_text(angle=45, hjust=1)) -> g1
+# 도착 
+AFSNT %>% filter(AOD == "A") %>% group_by(ARP) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=ARP,y=dly_mean,fill=ARP)) + geom_bar(stat="identity") + ggtitle("A (도착)") + theme(axis.text.x=element_text(angle=45, hjust=1))-> g2
+
+grid.arrange(g1,g2,ncol=2)
+
+```
+
+- 공항마다 지연율 차이가 심하게 나는 것을 확인 하였다. 
+- 공항마다의 지연율은 출도착에 따라서 많이 다름을 알 수 있었다 . 
+- ARP13 , ARP3 공항에서 평균 지연율이 높은 편이었고 , ARP11 공항에서 낮은 편이었다 . 
+
+## 상대공항 별 평균 지연율 살펴보기 
+
+```{r}
+# 출발
+AFSNT %>% filter(AOD == "D") %>% group_by(ODP) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=ODP,y=dly_mean,fill=ODP)) + geom_bar(stat="identity") + ggtitle("D (출발)") + theme(axis.text.x=element_text(angle=45, hjust=1)) -> g1
+# 도착 
+AFSNT %>% filter(AOD == "A") %>% group_by(ODP) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=ODP,y=dly_mean,fill=ODP)) + geom_bar(stat="identity") + ggtitle("A (도착)") + theme(axis.text.x=element_text(angle=45, hjust=1))-> g2
+
+grid.arrange(g1,g2,ncol=2)
+```
+
+- 상대 공항마다 평균 지연율이 차이 나는 것을 확인 하였다. 
+- 상대공항이 ARP13 인 운행에서 평균 지연율이 높은 것을 확인.
+- 상대공항이 ARP11 , ARP5 인 운행에서는 평균 지연율이 낮은 것을 확인 . 
+
+## 항공사 별 평균 지연율 살펴보기 
+
+```{r}
+# 출발
+AFSNT %>% filter(AOD == "D") %>% group_by(FLO) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=FLO,y=dly_mean,fill=FLO)) + geom_bar(stat="identity") + ggtitle("D (출발)")  -> g1
+# 도착 
+AFSNT %>% filter(AOD == "A") %>% group_by(FLO) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=FLO,y=dly_mean,fill=FLO)) + geom_bar(stat="identity") + ggtitle("A (도착)")  -> g2
+
+grid.arrange(g1,g2,ncol=2)
+```
+
+- 항공사 별 평균 지연율이 다른 것을 확인 . 
+(출발)
+- I 항공사에서 평균 지연율이 가장 높았고 , J 항공사에서 평균 지연율이 가장 낮았다 . 앞에서 본 빈도에 비교해 보면 , J 항공사는 운항횟수가 가장 많지만 평균 지연 확률은 가장 낮음을 알 수 있다 .
+(도착)
+- F 항공사와 L 항공사의 지연율 평균이 가장 높았다. 
+
+## 부정기편 별 평균 지연율 살펴보기 
+
+```{r}
+# 출발
+AFSNT %>% filter(AOD == "D") %>% group_by(IRR) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=IRR,y=dly_mean,fill=IRR)) + geom_bar(stat="identity") + ggtitle("D (출발)")  -> g1
+# 도착 
+AFSNT %>% filter(AOD == "A") %>% group_by(IRR) %>% summarise(dly_mean = mean(dly)) %>% ggplot(aes(x=IRR,y=dly_mean,fill=IRR)) + geom_bar(stat="identity") + ggtitle("A (도착)")  -> g2
+
+grid.arrange(g1,g2,ncol=2)
+```
+
+- 출발 도착 둘다 부정기편에서의 평균 지연율이 더 높았다 . 
+
+
+
+
+# 2. 전처리 및 파생변수 생성 
+
+
+## 시간 정보 변수 생성 
+```{r}
+AFSNT$STT_hour <- sapply(strsplit(as.character(AFSNT$STT),":"),"[",1)
+AFSNT$STT_minute <- sapply(strsplit(as.character(AFSNT$STT),":"),"[",2)
+AFSNT$ATT_hour <- sapply(strsplit(as.character(AFSNT$ATT),":"),"[",1)
+AFSNT$ATT_minute <- sapply(strsplit(as.character(AFSNT$ATT),":"),"[",2)
+AFSNT$STT2 <- as.numeric(AFSNT$STT_hour) + as.numeric(AFSNT$STT_minute)/60
+AFSNT$ATT2 <- as.numeric(AFSNT$ATT_hour) + as.numeric(AFSNT$ATT_minute)/60
+AFSNT$date <- ymd(paste(AFSNT$SDT_YY,AFSNT$SDT_MM,AFSNT$SDT_DD))
+
+# 계획 시간을 반올림 한 변수 
+AFSNT$STT3 <- as.factor(round(AFSNT$STT2))
+
+# 실제 지연 시간 (아주 작은 음의 값으로 나타난 경우는 나중에 전처리 과정에서 다 삭제 됨.)
+AFSNT$delay_time <- AFSNT$ATT2 - AFSNT$STT2
+```
+
+
+
+
+- 공항 그룹 별 해당 시간당 운행 횟수 별 지연확률을 살펴보자.
+
+```{r}
+# 해당 날짜의 공항에 시간당 운항 개수를 담은 파생 변수 
+AFSNT %>% group_by(date,ARP,STT3) %>% summarise(n=n()) -> temp1
+AFSNT$temp <- paste(AFSNT$date,AFSNT$ARP,AFSNT$STT3)
+temp1$temp <- paste(temp1$date,temp1$ARP,temp1$STT3)
+temp2 <- unique(temp1$n)
+for(i in temp2){
+  tempinfo <- temp1$temp[temp1$n==i]
+  AFSNT$ARP_STT3_n[AFSNT$temp %in% tempinfo] <- i
+  # print(i)
+}
+AFSNT$temp <- NULL
+rm(temp1,temp2,tempinfo)
+
+ggplot(AFSNT,aes(x=ARP_STT3_n,fill=DLY))+geom_bar()
+```
+
+
+```{r}
+ggplot(AFSNT,aes(x=ARP_STT3_n,fill=DLY))+geom_bar(position="fill")
+
+```
+
+- 해당 시간 공항의 비행기 운항 정보가 많을 수록 평균 지연율은 증가하는 것을 볼 수 있다.
+
+
+## 제출 데이터에 없는 편명은 지우기 
+
+```{r}
+# 987,709 rows -> 859,930 rows (127,779 rows deleted)
+AFSNT %>% filter(FLT %in% unique(AFSNT_DLY$FLT)) -> AFSNT
+dim(AFSNT)
+```
+
+
+
+## 부정 기편 및 결항 제거 
+
+```{r, echo=FALSE}
+# 859,930 rows -> 850,625 rows (9,305 rows deleted)
+AFSNT %>% filter(CNL == "N") %>% filter(IRR == "N") -> AFSNT
+dim(AFSNT)
+```
+
+
+
+## 제출 데이터에 계획시간 외에는 제거 
+
+```{r}
+# 850,625 rows -> 850,609 rows (16 rows deleted)
+AFSNT$hm_STT <- hm(AFSNT$STT)
+AFSNT %>% filter(hm_STT >= hm("06:00") & hm_STT <= hm("23:00")) -> AFSNT
+dim(AFSNT)
+```
+
+
+
+## 이상치 제거 
+
+```{r}
+# 단순 오타 추정 
+
+# 이상치 제거 
+# 지연 시간 이상치 
+# 850,609 rows -> 850,588 rows  ( 21 rows deleted )
+AFSNT %>% filter(!delay_time %in% sort(AFSNT$delay_time)[1:21]) -> AFSNT
+
+# 850,588 rows -> 849,151 rows ( 1,437 rows deleted )
+# 지연 시간이 3시간 이상인 것들은 이상치로 판단
+AFSNT %>% filter(delay_time <3) -> AFSNT
+
+# 제주도 활주로 비행기 사고 
+# 849,151 rows -> 848,270 rows ( 881 rows deleted )
+AFSNT %>% filter(date != ymd("20170929")) -> AFSNT
+
+dim(AFSNT)
+```
+
+
+
+## 출도착 안맞는거 제거
+
+```{r}
+# 출발 또는 도착만 존재하는 데이터 지우기  
+# 설날 처럼 특수한 날에 한 편명이 두번 출발 했던 날과 출 도착이 안 맞는 데이터 삭제 
+# 848,270 rows -> 847,946 rows ( 324 rows deleted )
+AFSNT %>%
+  group_by(FLT,SDT_YY,SDT_MM,SDT_DD) %>%
+  summarise(n=n()) %>% 
+  filter(n==1 | n==4) %>%
+  as.data.frame()-> temp
+
+index <- NULL
+for( i in 1:nrow(temp) ){
+  index <- c(index,which((AFSNT$SDT_YY==temp$SDT_YY[i]) & (AFSNT$SDT_MM==temp$SDT_MM[i]) & (AFSNT$SDT_DD==temp$SDT_DD[i]) & (AFSNT$FLT==temp$FLT[i])))
+  # print(i)
+}
+AFSNT <- AFSNT[-index,]
+
+dim(AFSNT)
+```
+
+
+# 계획 시간 별 지연 상황 살펴보기 
+```{r}
+ggplot(AFSNT,aes(x=STT3,fill=DLY)) + geom_bar()
+```
+
+- 계획시간마다 운항수가 달라서 지연율을 보기 위해 비율만 보기로 하였다. 
+
+```{r}
+ggplot(AFSNT,aes(x=STT3,fill=DLY)) + geom_bar(position = "fill")
+```
+
+- 계획 시간에 따라 지연율이 다르다 . 계획 시간이 지연율에 영향이 있다 . 
+
+# 외생 변수 추가 
+
+- 항공 기상 날씨 데이터 
+
+```{r}
+
+weather=read.csv("C:/Desktop/Son/공모전/빅콘 2019/최종 데이터 및 코드/weather.csv",header=T) #날씨데이터
+weather$date <- paste0(sprintf("%04d",weather$yyyy),sprintf("%02d",weather$mm),sprintf("%02d",weather$dd))
+
+AFSNT$date0 <- paste0(sprintf("%04d",as.numeric(as.character(AFSNT$SDT_YY))),sprintf("%02d",as.numeric(as.character(AFSNT$SDT_MM))),sprintf("%02d",as.numeric(as.character(AFSNT$SDT_DD))))
+
+AFSNT %>% mutate(wea = ifelse(date0 %in% weather$date, 1, 0)) %>% as.data.frame -> AFSNT
+```
+
+기상이 안 좋았던 날과 좋았던 날의 지연율 차이를 살펴보았다.
+```{r}
+ggplot(AFSNT,aes(x=wea,fill=DLY)) + geom_bar() 
+```
+
+기상이 안 좋았던 날과 좋았던 날의 지연율 차이를 살펴보았다.
+```{r}
+ggplot(AFSNT,aes(x=wea,fill=DLY)) + geom_bar(position = "fill") 
+```
+
+- 기상이 심했던 날은 지연율이 높은 편이었다 . 
+
+
+## 출 도착 나누기 
+
+```{r}
+# A (423.973 rows)
+AFSNT %>% filter(AOD=="A") -> A
+# D (423.973 rows)
+AFSNT %>% filter(AOD=="D") -> D
+```
+
+
+
+## 편명 그룹 요일 별 평균 지연율 살펴보기 
+
+```{r}
+D %>% group_by(FLT) %>% summarise(mean_dly = mean(dly)) -> temp
+temp1 <- temp[1:20,]
+
+ggplot(temp1,aes(x=FLT,y=mean_dly))+geom_bar(stat="identity")
+
+
+```
+
+- 편명 마다의 지연율 차이는 분명히 있다 . 하지만 여기서 더 세분화 해보기로 한다 
+
+
+### 편명 그룹간 요일별 평균 지연율 
+```{r}
+D %>% group_by(FLT,SDT_DY) %>% summarise(mean_dly=mean(dly),n=n()) -> temp
+D %>% group_by(FLT) %>% summarise(mean_dly=mean(dly),n=n()) %>% filter(FLT=="A1002")-> temp2
+head(temp)
+
+# 편명 A1002 의 평균 지연율은 0.442623 (약 44%)
+temp3 <- temp[temp$FLT=="A1002",]
+
+# 하지만 편명 A1002을 요일별로 나눠서 보면 토요일은 지연이 거의 없음을 알 수 있다  .
+ggplot(temp3,aes(x=SDT_DY,y=mean_dly)) + geom_bar(stat="identity")
+```
+
+- 편명 당 평균 지연율은 물론 있으며 , 같은 편명이라고 해도 요일별로 평균 지연율이 다름을 알 수 있다 . 
+
+
+
+
+## 파생 변수 생성 
+
+```{r}
+variable_scoring = function(x) {
+    # stt ( 계획 시각 별 평균 지연 확률에 대한 변수 )
+  x %>% group_by(STT3) %>% summarise(STT_score=round(mean(dly)*10,1)) %>% as.data.frame() -> STT_score
+  
+  for(i in 1:nrow(STT_score)){
+    x$STT_score[x$STT3==STT_score$STT3[i]] <-  STT_score$STT_score[i]
+  }
+  
+  # flo ( 항공사 별 평균 지연 확률 에 대한 변수 )
+  x %>% group_by(FLO) %>% summarise(FLO_score=round(mean(dly)*10,1)) %>% as.data.frame() -> FLO_score
+  
+  for(i in 1:nrow(FLO_score)){
+    x$FLO_score[x$FLO==FLO_score$FLO[i]] <-  FLO_score$FLO_score[i]
+  }
+  
+  # flt ( 편명 그룹 기준 요일 별 평균 지연율에 대한 변수  )
+  x %>% group_by(FLT,SDT_DY) %>% summarise(FLT_score=round(mean(dly)*10,1),n=n()) %>% as.data.frame() -> temp_FLT_score
+  
+  temp_FLT_score %>% filter(n >= 50) -> temp1
+  temp_FLT_score %>% filter(n < 50) -> temp2
+  index <- quantile(temp1$FLT_score, probs=c(0,0.2,0.4,0.6,0.8,1))
+  
+  temp1 %>% mutate(FLT_rank=ifelse(FLT_score >= index[5],"E",
+                                   ifelse(FLT_score >= index[4],"D",
+                                          ifelse(FLT_score >= index[3],"C",
+                                                 ifelse(FLT_score >= index[2],"B","A"))))) -> temp1
+  
+  qt <- quantile(temp2$FLT_score, probs=c(0,0.33,0.66,1))
+  temp2 %>% mutate(FLT_rank= ifelse(FLT_score >= qt[3],"D",
+                                    ifelse(FLT_score >= qt[2],"C","B"))) -> temp2
+  FLT_score <- rbind(temp1,temp2)
+  
+  
+  temp_paste1 <- paste(FLT_score$FLT,FLT_score$SDT_DY)
+  temp_paste2 <- paste(x$FLT,x$SDT_DY)
+  
+  temp_unique <- unique(FLT_score$FLT_rank)
+  
+  for(i in temp_unique){
+    tempinfo <- temp_paste1[FLT_score$FLT_rank==i]
+    x$FLT_rank[temp_paste2 %in% tempinfo] <-  i
+    # print(i)
+  }
+  
+  ### 원 핫 인코딩 
+  temp3 <- model.matrix(~FLT_rank,data=x)[,-1]
+  x$FLT_rankA <- as.numeric(x$FLT_rank=="A")
+  x <- data.frame(x,temp3)
+  
+  
+  # yy ( 연 평균 지연 확률에 대한 변수 )
+  x %>% group_by(SDT_YY) %>% summarise(YY_score=round(mean(dly)*10,1)) %>% as.data.frame() -> YY_score   
+  for(i in 1:nrow(YY_score)){
+    x$YY_score[x$SDT_YY==YY_score$SDT_YY[i]] <-  YY_score$YY_score[i]
+  }
+  
+  ## mm ( 월 평균 지연 확률에 대한 변수 )
+  x %>% group_by(SDT_MM) %>% summarise(MM_score=round(mean(dly)*10,1)) %>% as.data.frame() -> MM_score   
+  for(i in 1:nrow(MM_score)){
+    x$MM_score[x$SDT_MM==MM_score$SDT_MM[i]] <-  MM_score$MM_score[i]
+  }
+  
+  ## dy ( 요일 별 평균 지연 확률에 대한 변수 )
+  x %>% group_by(SDT_DY) %>% summarise(DY_score=round(mean(dly)*10,1)) %>% as.data.frame() -> DY_score   
+  for(i in 1:nrow(DY_score)){
+    x$DY_score[x$SDT_DY==DY_score$SDT_DY[i]] <-  DY_score$DY_score[i]
+  }
+  
+  ## arp ( 공항 별 평균 지연 확률에 대한 변수 )
+  x %>% group_by(ARP) %>% summarise(ARP_score=round(mean(dly)*10,1)) %>% as.data.frame() -> ARP_score   
+  for(i in 1:nrow(ARP_score)){
+    x$ARP_score[x$ARP==ARP_score$ARP[i]] <-  ARP_score$ARP_score[i]
+  }
+  
+  ## odp ( 상대공항 별 평균 지연 확률에 대한 변수 )
+  x %>% group_by(ODP) %>% summarise(ODP_score=round(mean(dly)*10,1)) %>% as.data.frame() -> ODP_score   
+  for(i in 1:nrow(ODP_score)){
+    x$ODP_score[x$ODP==ODP_score$ODP[i]] <-  ODP_score$ODP_score[i]
+  }
+    
+  ## arp_odp ( 노선 별 평균 지연 확률에 대한 변수 )
+  (x %>% mutate(ARP_ODP = paste(ARP,ODP)) -> x) %>% 
+    group_by(ARP_ODP) %>% summarise(ARP_ODP_score=round(mean(dly)*10,1)) %>% as.data.frame() -> ARP_ODP_score
+  for(i in ARP_ODP_score$ARP_ODP_score){
+    tempinfo <- ARP_ODP_score$ARP_ODP[ARP_ODP_score$ARP_ODP_score==i]
+    x$ARP_ODP_score[x$ARP_ODP %in% tempinfo] <-  i
+  }
+
+  ## flo_reg ( 항공사 별 등록기호 개수에 대한 변수 ) # 즉 항공사별 항공기 개수 
+  x %>% group_by(FLO) %>% summarise(flo_reg_n = length(unique(REG))) -> flo_reg_n
+
+  for (i in 1:nrow(flo_reg_n)){
+    x$flo_reg_n[x$FLO == flo_reg_n$FLO[i]] <- flo_reg_n$flo_reg_n[i]
+  }
+  
+  ## Season ( 계절에 대한 변수 )
+  x %>% mutate(Season = ifelse(SDT_MM<=2,"Winter",
+                                   ifelse(SDT_MM <= 5,"Spring",
+                                          ifelse(SDT_MM <= 8,"Summer",
+                                                 ifelse(SDT_MM <= 11,"fall","Winter"))))) -> x
+  x %>% group_by(Season) %>% summarise(Season_score=round(mean(dly)*10,2)) -> Season_score
+  for(i in 1:nrow(Season_score)){
+    x$Season_score[x$Season==Season_score$Season[i]] <-  Season_score$Season_score[i]
+  }
+  
+  ## AM_PM ( 오전 오후에 대한 변수 )
+  x %>% mutate(AM_PM = ifelse(as.numeric(STT2)<=12,0,1)) -> x
+  # 
+  
+  # ## arp_connection_n
+  # x %>% group_by(ARP) %>% summarise(arp_connection_n = length(unique(ODP))) -> arp_connection_n
+  # for(i in arp_connection_n$arp_connection_n){
+  #   tempinfo <- arp_connection_n$ARP[arp_connection_n$arp_connection_n==i]
+  #   x$arp_connection_n[x$ARP %in% tempinfo] <-  i
+  # }
+  # 
+  return(x)
+}
+
+D <- variable_scoring(D)
+A <- variable_scoring(A)
+```
+
+
+
+```{r}
+
+## p_delay_time
+
+p_delay_time_function = function(train,test=NA){
+  
+  train_x_num <- train %>% dplyr::select(-delay_time,-dly) %>% data.matrix
+  train_y_num <- train$delay_time
+  
+  test_x_num <- test %>% dplyt::select(-delay_time,-dly) %>% data.matrix
+  test_y_num <- test$delay_time
+  
+  cv_model <- xgboost(data=train_x_num,label=train_y_num,
+                     nfold = 5,nrounds = 200,early_stopping_rounds = 150,
+                     objective='reg:linear', verbose = F,prediction = T)
+  
+  p_delay_time <- list()
+  
+  p_delay_time[[1]] <- predict(cv_model,train_x_num)
+
+  if(sum(is.na(test))!=1){
+    p_delay_time[[2]] <- predict(cv_model,test_x_num)
+  }
+  return(p_delay_time)
+}
+
+
+## p_delay_time_A
+p_delay_time_A_function = function(train,test=NA){
+  temp01 <- paste(train$date,train$FLT)
+  temp02 <- paste(D$date,D$FLT)
+
+  D_train <- D[temp02 %in% temp01,]
+  D_model_data1 <- D_train[,c("dly","ARP_STT3_n","delay_time","wea","STT_score","FLO_score","FLT_rankA","FLT_rankB","FLT_rankC","FLT_rankD","FLT_rankE","YY_score","MM_score","DY_score","ARP_score","ODP_score","ARP_ODP_score","flo_reg_n","Season_score","AM_PM")]
+  
+  D_train_x_num <- D_model_data1 %>% dplyr::select(-delay_time,-dly) %>% data.matrix
+  D_train_y_num <- D_model_data1$delay_time
+  
+  cv_model <- xgboost(data=D_train_x_num,label=D_train_y_num,
+                     nfold = 5,nrounds = 200,early_stopping_rounds = 150,
+                     objective='reg:linear', verbose = F,prediction = T)
+  
+  p_delay_time <- list()
+  
+  p_delay_time[[1]] <- round(predict(cv_model,D_train_x_num),2)
+  p_delay_time[[1]] <- data.frame(temp=paste(D_train$date,D_train$FLT),p_delay_time=p_delay_time[[1]])
+  
+  if(sum(is.na(test))!=1){
+    D_test <- D[!temp02 %in% temp01,]
+    D_model_data2 <- D_test[,c("dly","ARP_STT3_n","delay_time","wea","STT_score","FLO_score","FLT_rankA","FLT_rankB","FLT_rankC","FLT_rankD","FLT_rankE","YY_score","MM_score","DY_score","ARP_score","ODP_score","ARP_ODP_score","flo_reg_n","Season_score","AM_PM")]
+    test_x_num <- D_model_data2 %>% dplyr::select(-delay_time,-dly) %>% data.matrix
+    test_y_num <- D_model_data2$delay_time
+    p_delay_time[[2]] <- round(predict(cv_model,test_x_num),2)
+    p_delay_time[[2]] <- data.frame(temp=paste(D_test$date,D_test$FLT),p_delay_time=p_delay_time[[2]])
+    
+  }
+  return(p_delay_time)
+}
+
+```
+
+
+# 분석 
+```{r}
+
+# 출발 데이터 
+
+### 변수 선택 
+
+# colnames(D)
+D_model_data <- D[,c("dly","ARP_STT3_n","delay_time","wea","STT_score","FLO_score","FLT_rankA","FLT_rankB","FLT_rankC","FLT_rankD","FLT_rankE","YY_score","MM_score","DY_score","ARP_score","ODP_score","ARP_ODP_score","flo_reg_n","Season_score","AM_PM")]
+
+```
+
+## Cross validation
+## 5 fold
+### 각 기법들의 auc / accuracy 를 입력할 공간 마련
+```{r, echo=FALSE}
+k=5   
+{
+  glm_aucscores<-vector(length=k)
+  glm_accuracy<-vector(length=k)
+  lda_aucscores<-vector(length=k)
+  lda_accuracy<-vector(length=k)
+  xgb_aucscores<-vector(length=k)
+  xgb_accuracy<-vector(length=k)
+  naivek_aucscores<-vector(length=k)
+  naivek_accuracy<-vector(length=k)
+  nnet_aucscores<-vector(length=k)
+  nnet_accuracy<-vector(length=k)
+}
+```
+
+
+
+
+```{r, echo=FALSE}
+{
+  set.seed(1)                       ## seed 추가 
+  x<-createFolds(D_model_data$dly,k=5)
+  test_D<-list()
+  train_D<-list()
+  for(i in 1:5){
+    test_D[[i]]<-D_model_data[x[[i]],]
+    train_D[[i]]<-D_model_data[-x[[i]],]
+  }
+}
+```
+
+
+
+```{r}
+## glm
+# for( i in 1:5 ){
+#   start <- Sys.time(); print(start);
+#   train<-train_D[[i]]
+#   test<-test_D[[i]]
+#   pdt <- p_delay_time_function(train,test)
+#   train$p_delay_time <- pdt[[1]]
+#   test$p_delay_time <- pdt[[2]]
+#   model_glm<-glm(dly~ARP_STT3_n+p_delay_time+wea+STT_score+FLO_score+FLT_rankA+FLT_rankB+FLT_rankC+FLT_rankD+YY_score+MM_score+DY_score+ARP_score+ODP_score+ARP_ODP_score+flo_reg_n+Season_score+AM_PM,family='binomial',data=train) 
+#   
+#   p <- predict(model_glm, newdata=test, type="response")
+#   pr <- prediction(p, test$dly)
+#   auc <- performance(pr, measure = "auc")
+#   glm_aucscores[i]<-auc@y.values[[1]]
+#   print(Sys.time()-start)
+# }
+```
+
+
+```{r}
+## naivek
+# for( i in 1:5 ){
+#   start <- Sys.time(); print(start);
+#   train<-train_D[[i]]
+#   test<-test_D[[i]]
+#   pdt <- p_delay_time_function(train,test)
+#   train$p_delay_time <- pdt[[1]]
+#   test$p_delay_time <- pdt[[2]]
+#   model_naivek=naive_bayes(as.factor(dly)~wea+STT_score+FLO_score+FLT_rankA+FLT_rankB+FLT_rankC+FLT_rankD+ARP_STT3_n+YY_score+MM_score+DY_score+ARP_score+p_delay_time+FLO_score,usekernel=T, data=train)
+#   p<-predict(model_naivek,test,type="prob")
+#   pr<-prediction(p[,2],test$dly)
+#   auc<-performance(pr,measure="auc")
+#   naivek_aucscores[i]<-auc@y.values[[1]]
+#   print(Sys.time()-start)
+# }
+```
+
+```{r}
+## nnet
+# for( i in 1:5 ){
+#   start <- Sys.time(); print(start);
+#   train<-train_D[[i]]
+#   test<-test_D[[i]]
+#   pdt <- p_delay_time_function(train,test)
+#   train$p_delay_time <- pdt[[1]]
+#   test$p_delay_time <- pdt[[2]]
+#   nn=nnet(dly~STT_score+FLO_score+FLT_rank+YY_score+MM_score+DY_score
+#           +ARP_score+ODP_score+p_delay_time+wea+ARP_STT3_n+ARP_ODP_score
+#           +flo_reg_n+Season_score+AM_PM, data=train,size=7,maxit=1000,decay=0.0005,rang=0.1)
+#   p <- predict(nn, test, type="raw")
+#   pr <- prediction(p,as.numeric(test$dly))
+#   auc <- performance(pr, measure = "auc")
+#   nnet_aucscores[i]<-auc@y.values[[1]]
+#   print(Sys.time()-start)
+# }
+```
+
+
+```{r}
+## lda
+# for( i in 1:5 ){
+#   start <- Sys.time(); print(start);
+#   train<-train_D[[i]]
+#   test<-test_D[[i]]
+#   pdt <- p_delay_time_function(train,test)
+#   train$p_delay_time <- pdt[[1]]
+#   test$p_delay_time <- pdt[[2]]
+#   model_lda <- lda(dly~STT_score+FLO_score+FLT_rankA+FLT_rankB+FLT_rankC+FLT_rankD+FLT_rankE
+#                    +YY_score+MM_score+DY_score+ARP_score+ODP_score+p_delay_time+wea
+#                    +ARP_STT3_n+ARP_ODP_score+flo_reg_n+Season_score+AM_PM, data=train)
+#   p <- predict(model_lda, newdata=test, type="response")
+#   pr <- prediction(p$posterior[,2], test$dly)
+#   auc <- performance(pr, measure = "auc")
+#   lda_aucscores[i]<-auc@y.values[[1]]
+#   print(Sys.time()-start)
+# }
+```
+
+```{r}
+# xgboost
+
+# parameter
+# params=list(eta = 0.1, gamma = 2)
+# 
+# for( i in 1:5 ){
+#   start <- Sys.time(); print(start);
+#   train<-train_D[[i]]
+#   test<-test_D[[i]]
+#   pdt <- p_delay_time_function(train,test)
+#   train$p_delay_time <- pdt[[1]]
+#   test$p_delay_time <- pdt[[2]]
+#   train$delay_time <- NULL
+#   test$delay_time <- NULL
+#   train <-list(data= as(as.matrix(train[,-1]),"dgCMatrix"),label=train$dly)
+#   test <-list(data= as(as.matrix(test[,-1]),"dgCMatrix"),label=test$dly)
+#   
+#   model = xgboost(data=train$data, label= train$label,
+#                   nrounds = 200, early_stopping_rounds = 150,
+#                   objective = "binary:logistic",verbose = F,
+#                   params = params)
+#     
+#   p <- predict(model, newdata=test$data, type="prob")
+#   pr <- prediction(p, test$label)
+#   auc <- performance(pr, measure = "auc")
+#   xgb_aucscores[i]<-auc@y.values[[1]]
+#   print(Sys.time()-start)
+#   glm_pred <- ROCR::prediction(p, test$label)
+#   glm_roc <- performance(glm_pred, "tpr", "fpr")  
+#   par(new=T)
+#   plot(glm_roc, col=rainbow(5)[i])
+# }
+# legend("bottomright", legend=c("K=1", "K=2", "K=3", "K=4", "K=5"), col=rainbow(5), lty=1, bg = "white", cex = 1)
+# 
+# 
+# imp = xgb.importance(model = model)
+# xgb.plot.importance(imp)
+# 
+# data.frame(variable = rep(imp$Feature,3),
+# 
+#            value = c(imp$Gain,imp$Cover,imp$Frequency),
+# 
+#            Type = c(rep('Gain',nrow(imp)),rep('Cover',nrow(imp)),rep('Frequency',nrow(imp)))
+# 
+#            ) %>% ggplot(aes(variable,value,fill = variable))+
+# 
+#   geom_bar(stat = 'identity')+
+# 
+#   facet_grid(~Type)+
+# 
+#   theme_bw()+
+# 
+#   ggtitle('XGBoost : Customized Importance Plot',
+# 
+#           subtitle = "에어플레인모드팀") +coord_flip()
+# 
+
+```
+
+
+# 도착 데이터 
+
+## 변수 선택 
+
+```{r}
+colnames(A)
+A_model_data <- A[,c("dly","date","FLT","ARP_STT3_n","delay_time","wea","STT_score","FLO_score","FLT_rankA","FLT_rankB","FLT_rankC","FLT_rankD","FLT_rankE","YY_score","MM_score","DY_score","ARP_score","ODP_score","ARP_ODP_score","flo_reg_n","Season_score","AM_PM")]
+
+```
+
+
+
+
+```{r, echo=FALSE}
+{
+  set.seed(1)                       ## seed 추가 
+  x<-createFolds(A_model_data$dly,k=5)
+  test_A<-list()
+  train_A<-list()
+  for(i in 1:5){
+    test_A[[i]]<-A_model_data[x[[i]],]
+    train_A[[i]]<-A_model_data[-x[[i]],]
+  }
+}
+```
+
+
+```{r}
+# 
+# ## glm
+# for( i in 1:5 ){
+#   start <- Sys.time(); print(start);
+#   train<-train_A[[i]]
+#   test<-test_A[[i]]
+#   pdt <- p_delay_time_A_function(train,test)
+#   pdt_rbind <- rbind(pdt[[1]],pdt[[2]])
+#   for ( j in unique(pdt_rbind$p_delay_time)){
+#     tempinfo <- pdt_rbind$temp[pdt_rbind$p_delay_time == j]
+#     train$p_delay_time[paste(train$date,train$FLT) %in% tempinfo] <- j
+#     test$p_delay_time[paste(test$date,test$FLT) %in% tempinfo] <- j
+#   }
+#   model_glm<-glm(dly~ARP_STT3_n+p_delay_time+wea+STT_score+FLO_score+FLT_rankA+FLT_rankB+FLT_rankC+FLT_rankD+YY_score+MM_score+DY_score+ARP_score+ODP_score+ARP_ODP_score+flo_reg_n+Season_score+AM_PM,family='binomial',data=train) 
+# 
+#   p <- predict(model_glm, newdata=test, type="response")
+#   pr <- prediction(p, test$dly)
+#   auc <- performance(pr, measure = "auc")
+#   glm_aucscores[i]<-auc@y.values[[1]]
+#   print(Sys.time()-start)
+# }
+
+```
+
+```{r}
+## lda
+# for( i in 1:5 ){
+#   start <- Sys.time(); print(start);
+#   train<-train_A[[i]]
+#   test<-test_A[[i]]
+#   pdt <- p_delay_time_A_function(train,test)
+#   pdt_rbind <- rbind(pdt[[1]],pdt[[2]])
+#   for ( j in unique(pdt_rbind$p_delay_time)){
+#     tempinfo <- pdt_rbind$temp[pdt_rbind$p_delay_time == j]
+#     train$p_delay_time[paste(train$date,train$FLT) %in% tempinfo] <- j
+#     test$p_delay_time[paste(test$date,test$FLT) %in% tempinfo] <- j
+#   }
+#   model_lda <- lda(dly~STT_score+FLO_score+FLT_rankA+FLT_rankB+FLT_rankC+FLT_rankD+FLT_rankE
+#                    +YY_score+MM_score+DY_score+ARP_score+ODP_score+p_delay_time+wea
+#                    +ARP_STT3_n+ARP_ODP_score+flo_reg_n+Season_score+AM_PM, data=train)
+#   p <- predict(model_lda, newdata=test, type="response")
+#   pr <- prediction(p$posterior[,2], test$dly)
+#   auc <- performance(pr, measure = "auc")
+#   lda_aucscores[i]<-auc@y.values[[1]]
+#   print(Sys.time()-start)
+# }
+```
+
+```{r}
+## nnet
+# for( i in 1:5 ){
+#   start <- Sys.time(); print(start);
+#   train<-train_A[[i]]
+#   test<-test_A[[i]]
+#   pdt <- p_delay_time_A_function(train,test)
+#   pdt_rbind <- rbind(pdt[[1]],pdt[[2]])
+#   for ( j in unique(pdt_rbind$p_delay_time)){
+#     tempinfo <- pdt_rbind$temp[pdt_rbind$p_delay_time == j]
+#     train$p_delay_time[paste(train$date,train$FLT) %in% tempinfo] <- j
+#     test$p_delay_time[paste(test$date,test$FLT) %in% tempinfo] <- j
+#   }
+#   nn=nnet(dly~STT_score+FLO_score+FLT_rank+YY_score+MM_score+DY_score
+#           +ARP_score+ODP_score+p_delay_time+wea+ARP_STT3_n+ARP_ODP_score
+#           +flo_reg_n+Season_score+AM_PM, data=train,size=7,maxit=1000,decay=0.0005,rang=0.1)
+#   p <- predict(nn, test, type="raw")
+#   pr <- prediction(p,as.numeric(test$dly))
+#   auc <- performance(pr, measure = "auc")
+#   nnet_aucscores[i]<-auc@y.values[[1]]
+#   print(Sys.time()-start)
+# }
+```
+
+```{r}
+# xgboost
+# 
+# # parameter
+# params=list(eta = 0.15, gamma = 4)
+# 
+# for( i in 1:5 ){
+#   start <- Sys.time(); print(start);
+#   train<-train_A[[i]]
+#   test<-test_A[[i]]
+#   pdt <- p_delay_time_A_function(train,test)
+#   pdt_rbind <- rbind(pdt[[1]],pdt[[2]])
+# 
+#   for ( j in unique(pdt_rbind$p_delay_time)){
+#     tempinfo <- pdt_rbind$temp[pdt_rbind$p_delay_time == j]
+#     train$p_delay_time[paste(train$date,train$FLT) %in% tempinfo] <- j
+#     test$p_delay_time[paste(test$date,test$FLT) %in% tempinfo] <- j
+#   }
+#   
+#   train$date <- train$FLT <- train$delay_time <- NULL 
+#   test$date <- test$FLT <- test$delay_time <- NULL 
+#   
+#   train <-list(data= as(as.matrix(train[,-1]),"dgCMatrix"),label=train$dly)
+#   test <-list(data= as(as.matrix(test[,-1]),"dgCMatrix"),label=test$dly)
+#   
+#   model = xgboost(data=train$data, label= train$label,
+#                   nrounds = 200, early_stopping_rounds = 150,
+#                   objective = "binary:logistic",verbose = F,
+#                   params = params)
+#     
+#   p <- predict(model, newdata=test$data, type="prob")
+#   pr <- prediction(p, test$label)
+#   auc <- performance(pr, measure = "auc")
+#   xgb_aucscores[i]<-auc@y.values[[1]]
+#   print(Sys.time()-start)
+# }
+# 
+# library(Epi)
+# 
+# ROC(test = pr, stat = test$dly, plot = "ROC", AUC = T, main = "XGboost")
+# 
+# 
+
+```
+
+
