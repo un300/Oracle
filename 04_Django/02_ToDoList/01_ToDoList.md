@@ -5,8 +5,9 @@
 ## 1. Application 구성하기
 
 > 1. Django를 install package한 후, `pycharm`의 `Terminal`에서 다음과 같이 입력한다. 아래의 과정은 Django 프로젝트를 만드는 과정이다.
->    - `django-admin startproject ToDoList`
->
+>    
+> - `django-admin startproject ToDoList`
+>    
 > 2. 그 후, `Termianl`에서 다음과 같이 입력하여 Application(이하 App)을 구성한다. 우리의 경우 App의 이름은 `my_to_do_app`이다.
 >
 >    - `python manage.py startapp my_to_do_app`
@@ -56,9 +57,12 @@
 >    urlpatterns = [
 >        path('', views.index)
 >    ]
+>    
 >    ```
 >
-> 3.  다음으로 `my_to_do_app`의 하위디렉토리에 속해있는 `view.py`에서 index라는 함수를 다음과 같이 정의한다.
+>    
+>
+> 3. 다음으로 `my_to_do_app`의 하위디렉토리에 속해있는 `view.py`에서 index라는 함수를 다음과 같이 정의한다.
 >
 >    ```python
 >    from django.shortcuts import render
@@ -71,9 +75,13 @@
 >    
 >    ```
 >
+>    
+>
 > 4. `my_to_do_app`의 하위 디렉토리에 `templates` - `my_to_do_app`이라는 두개의 중첩된 폴더경로를 만들어준다. 
 >
 >    이것은 `templates` 안에 Django 프로젝트과 같은 이름의 폴더를 만들어주는 꼴인데, Django는 `html`파일을 탐색할때, `templates`파일을 먼저 찾은 다음, 그 내부에서 Django프로젝트명과 같은 이름의 파일을 찾고 또 다시 그 내부의 `html`파일을 찾기 때문이다. 그러므로 위와 같이 경로를 만들어 준다. 
+>
+>    
 >
 > 5. `my_to_do_app` - `templates` - `my_to_do_app`의 하위에 책에서 제공해주는 `index.html`파일을 만들어준다.  `index.html`파일 코드는 다음과 같다.
 >
