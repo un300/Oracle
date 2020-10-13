@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1> {{ clist.question_text }} </h1>
+    <hr/>
+
+    <form method="post" action="{% url 'vote' %}">
+        {% csrf_token %}
+        <input type="hidden" name="question_id" value="{{ clist.id }}" />
+
+        {% for choice in clist.choice_set.all %}
+        <input type="radio"
+           name="choice"
+           value="{{ choice.id }}">
+
+        <label>{{ choice.choice_text }}</label><br/>
+        {% endfor %}
+        <p/>
+        <input type="submit" value="VOTE">
+    </form>
+</body>
+</html>

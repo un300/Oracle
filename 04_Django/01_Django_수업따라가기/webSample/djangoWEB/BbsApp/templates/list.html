@@ -1,0 +1,125 @@
+
+{% include 'header.html' %}
+{% block content %}
+
+
+<!-- Main content -->
+<section class="content">
+	<div class="row">
+		<!-- left column -->
+		<div class="col-md-12">
+			<!-- general form elements -->
+            <!-- general form elements -->
+			<div class='box'>
+				<div class="box-header with-border">
+					<h3 class="box-title">Board List</h3>
+				</div>
+				<div class='box-body'>
+					<select id="searchType">
+						<option value="title">제목</option>
+						<option value="writer">작성자</option>
+					</select>
+					<input type="text" id="searchKeyword">
+					<button id='searchBtn'>Search Board</button>
+					<button id='newBtn'>New Board</button>
+				
+				</div>
+			</div>
+
+          <div class="box">
+				<div class="box-header with-border">
+					<h3 class="box-title">LIST ALL PAGE</h3>
+				</div>
+				<div class="box-body">
+
+
+{% if boards %}
+<table class="table table-bordered">
+	<tr>
+		<th style="width: 10px">BNO</th>
+		<th>TITLE</th>
+		<th>WRITER</th>
+		<th>REGDATE</th>
+		<th style="width: 40px">VIEWCNT</th>
+	</tr>
+
+	<tbody id="tbody">
+
+	{% for board in boards %}
+	<tr>
+		<td> {{ board.id }} </td>
+		<td><a href="{% url 'bbs_read' id=board.id %}"> {{ board.title }} </a></td>
+		<td> {{board.writer}} </td>
+		<td> {{board.regdate}} </td>
+		<td><span class="badge bg-red"> {{ board.viewcnt }} </span></td>
+	</tr>
+    {% endfor %}
+	</tbody>
+
+</table>
+{% else %}
+	<p> 데이터가 존재하지 않습니다 </p>
+{% endif %}
+
+
+				</div>
+				<!-- /.box-body -->
+				<div class="box-footer">Footer</div>
+				<!-- /.box-footer-->
+			</div>
+		</div>
+		<!--/.col (left) -->
+
+	</div>
+	<!-- /.row -->
+</section>
+<!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
+
+
+
+
+<script>
+	$(document).ready(function() {
+		$('#newBtn').click(function() {
+			location.href = '../bbs_registerForm' ;
+		})
+		$('#searchBtn').click(function() {
+			//alert( $('#searchType').val() )
+			//alert( $('#searchKeyword').val() )
+			$('#tbody').empty()
+			// ajax 통신 - json
+			$.ajax({
+				url 		: "{% url 'bbs_search' %}",
+				type 		: "post",
+				data 		: {'csrfmiddlewaretoken'	: '{{csrf_token}}',
+								type 					: $('#searchType').val(),
+								keyword 				: $('#searchKeyword').val(),
+							   },
+				dataType 	: "json",
+				success 	: function(data){
+								var txt = "";
+								$.each(data , function(idx, obj) {
+								txt +="<tr><td>"+obj.id+"</td>" ;
+								txt +="<td><a href=../bbs_read/"+obj.id+">"+obj.title+"</a></td>";
+								txt +="<td>"+obj.writer+"</td>";
+								txt +="<td>"+obj.regdate+"</td>";
+								txt +="<td><span class='badge bg-red'>"+obj.viewcnt+"</span></td></tr>" ;
+							});
+							$("#tbody").append(txt);
+
+
+						}
+			})
+
+		})
+	})
+
+</script>
+
+
+{% endblock %}
+{% include 'footer.html' %}
+
+
