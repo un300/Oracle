@@ -12,7 +12,7 @@
 
 ## 1. Django 세팅하기
 
-> Django를 인스톨한 상태이서 진행해야 합니다.
+> Django를 인스톨한 상태에서 진행해야 합니다.
 >
 > 1. teminal 창에서 `django-admin startproject ToDoList`를 입력한다.
 >
