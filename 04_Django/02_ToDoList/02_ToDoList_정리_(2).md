@@ -49,4 +49,4 @@
 >
 >    ![ToDoList04](./마크다운이미지/ToDoList04.PNG)
 >
->    `manageApp_todo`는 방금 migrate한 모델이름이고, 나머지는 Django에서 제공해주는 기본 모델이라고 생각하면 된다.
+>    `manageApp_todo`는 방금 migrate한 모델이름이고, 나머지는 Django에서 제공해주는 기본 모델(=테이블)이라고 생각하면 된다.
