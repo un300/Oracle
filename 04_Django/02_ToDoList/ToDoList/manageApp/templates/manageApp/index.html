@@ -41,7 +41,7 @@
         </div>
         <div class="content">
             <div class="messageDiv">
-                <form action="" method="POST">{% csrf_token %}
+                <form action="./createTodo" method="POST">{% csrf_token %}
                     <div class="input-group">
                         <input id="todoContent" name="todoContent" type="text" class="form-control" placeholder="메모할 내용을 적어주세요">
                         <span class="input-group-btn">
