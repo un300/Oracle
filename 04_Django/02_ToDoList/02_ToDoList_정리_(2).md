@@ -78,7 +78,7 @@
 > 2. 44번째줄 `<fomr>`테그에 존재하는`action`을 다음과 같이 변경해주자
 >
 >    ```html
->    <form action="./createTodo" method="POST">{% csrf_token %}
+>    <form action="./createTodo/" method="POST">{% csrf_token %}
 >    ```
 >
 > 3. 그다음 `python manage.py runserver`를 입력하여 서버를 실행시킨 후, 메모하기 버튼을 눌러보면 다음과 같은 화면이 나타날 것이다.
@@ -88,3 +88,115 @@
 >    `Page not found (404)`에러는 페이지가 없어서 나타나는 에러이다. 아직 우리는 페이지를 만들지 않았기 때문에 에러가 나타나는건 당연한 일이니 놀라지마시라
 >
 >    `Page not found (404)`에러는 Django를 다루면서 앞으로 자주보게될 에러이다.
+
+
+
+
+
+## 3. Model에 데이터 입력하고 홈페이지에 출력해보기
+
+> 이제는 데이터를 입력하고 그것을 간단히 출력해보는 과정을 실습해보자.
+>
+> 아직까지 위에서 만든 Todo모델을 사용하는 것은 아니다!
+>
+> 
+>
+> 1. `ToDoList` > `manageApp`> `urls.py`에서 다음과 같이 코드를 작성하자
+>
+>    ```python
+>    	
+>    from django.urls import path
+>    from manageApp import views
+>    
+>    urlpatterns = [
+>        path('', views.index),
+>        path('createTodo/', views.createTodo)  ## 새롭게 추가해준 코드
+>    ]
+>    ```
+>
+> 2. `ToDoList` > `manageApp` > `views.py`에서 다음과 같은 함수를 작성해 준다
+>
+>    ```python
+>    def createTodo(request):
+>        user_input_str = request.POST['todoContent']
+>        return HttpResponse('방금 입력한 문자열은 이거에요 : '+ user_input_str)
+>    ```
+>
+>    위에서 `request.POST['todoContent']`는 `index.html`의 코드를 보면서 설명할 필요가 있다.
+>
+>    ```html
+>    <form action="./createTodo/" method="POST">{% csrf_token %}
+>    	<div class="input-group">
+>    		<input id="todoContent" name="todoContent" type="text" class="form-control" placeholder="메모할 내용을 적어주세요">
+>    		<span class="input-group-btn">
+>    			<button class="btn btn-default" type="submit">메모하기!</button>
+>    		</span>
+>    	</div>
+>    </form>
+>    ```
+>
+>    위에서 `<form>`태그 안에 있는 `<input>`태그에 `name`이라는 속성을 보자. 이 속성 값은 사용자가 입력한 데이터를 지칭한다고 생각하면 된다. 
+>
+>    그레서 `name`의 속성값인 `todoContent`를 사용하여 사용자의 입력값을  
+>
+>    `user_input_str = request.POST['todoContent']`형태로 받아온 것이다.
+>
+> 3. `python manage.py runserver`를 입력하고 입력값을 입력하면 다음과 같은 화면을 볼 수 있다.
+>
+>    ![ToDoList06](./마크다운이미지/ToDoList06.PNG)
+>
+>    ![ToDoList07](./마크다운이미지/ToDoList07.PNG)
+
+
+
+## 4. 입력한 데이터를 모델(데이터베이스)에 적용하기
+
+> 위과정은 모델을 만들고, 데이터를 입력하여 출력하는 과정을 실습했다.
+>
+> 이제는 입력한 데이터를 모델(데이터베이스)에 적용해보자.
+>
+> 1. 모델을 사용하기 위해서는 `views.py`의 상단에 다음과 같은 코드를 작성해야 한다.
+>
+>    ```python
+>    from django.shortcuts import render, HttpResponse
+>    from .models import *  ## 새롭게 추가한 코드!
+>    
+>    # Create your views here.
+>    
+>    def index(request) :
+>        return render(request, 'manageApp/index.html')
+>    
+>    def createTodo(request):
+>        user_input_str = request.POST['todoContent']
+>        return HttpResponse('방금 입력한 문자열은 이거에요 : '+ user_input_str)
+>    ```
+>
+>    `from .models import`에서 model앞에 점(.)이 있음을 주의하라.
+>
+> 2.  그리고 다음과 같이 `createTodo`함수를 변경하라
+>
+>    ```python
+>    def createTodo(request):
+>        user_input_str = request.POST['todoContent']
+>        new_todo = ToDo(content = user_input_str)  # 입력한 데이터를 Todo모델에 적용하는 코드
+>        new_todo.save()   # 새롭게 입력한 데이터를 저장하는 코드
+>        return HttpResponse('방금 입력한 문자열은 이거에요 : '+ user_input_str)
+>    ```
+>
+> 3. 그 다음 `python manage.py runserver`를 입력하고, 홈페이지가 뜨면 데이터를 입력하고 메모하기 버튼을 누르자.
+>
+>    ![ToDoList06](./마크다운이미지/ToDoList06.PNG)
+>
+>    ![ToDoList07](./마크다운이미지/ToDoList07.PNG)
+>
+> 4. 그리고 terminal에서 다음과 같이 작성해서 새롭게 입력한 데이터가 정상적으로 입력이 되었는지 확인해보자
+>
+>    ```
+>    - python manage.py dbshell
+>    - (만약 Todo 모델의 데이터베이스병이 기억이 나지 않는다면? : 위 코드를 작성한 후 .table 입력하면 이름 확인가능)
+>    - select * from manageApp_todo;
+>    ```
+>
+>    위 코드를 작성하면 아래와 같이 Todo 모델에 데이터가 입력된 결과를 볼 수 있다.
+>
+>    ![ToDoList08](./마크다운이미지/ToDoList08.PNG)
