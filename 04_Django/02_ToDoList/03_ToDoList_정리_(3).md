@@ -51,20 +51,22 @@
 > 2. `ToDoList` > `manageApp` > `views.py`에서 다음과 같이 코드를 작성해 주자
 >
 >    ```python
->    from django.shortcuts import render, HttpResponse, HttpResponseRedirect ## 추가해줌
->    from django.urls import reverse  ## 추가해줌
-> from .models import *
+>    from django.shortcuts import render, HttpResponse, HttpResponseRedirect #추가해줌
+>    from django.urls import reverse  #추가해줌
+>    from .models import *
 >    
->     def index(request) :
->           return render(request, 'manageApp/index.html')
+>    def index(request) :
+>    	return render(request, 'manageApp/index.html')
 >    
->       def createTodo(request):
->           user_input_str = request.POST['todoContent']
->           new_todo = ToDo(content = user_input_str)
->           new_todo.save()
->           return HttpResponseRedirect(reverse('index')) ## 변경함
+>    def createTodo(request):
+>    	user_input_str = request.POST['todoContent']
+>        new_todo = ToDo(content = user_input_str)
+>        new_todo.save()
+>        return HttpResponseRedirect(reverse('index')) ## 변경함
 >    
 >    ```
+>
+>    
 >
 >    `HttpResponseRedirect()`함수와 `reverse()`함수를 사용하기 위해  import 구문에 추가시켜 주었다. 
 >
