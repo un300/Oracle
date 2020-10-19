@@ -53,17 +53,17 @@
 
             <div class="toDoDiv">
                 <ul class="list-group">
-
-                    <form action="" method="GET">
+                    {% for todo in todos %}
+                    <form action="./deleteTodo/" method="GET">
                         <div class="input-group" name='todo1'>
-                            <li class="list-group-item">메모한 내용은 여기에 기록될 거에요</li>
-                            <input type="hidden" id="todoNum" name="todoNum" value="1"></input>
+                            <li class="list-group-item">{{ todo.content }}</li>
+                            <input type="hidden" id="todoNum" name="todoNum" value="{{todo.id}}"></input>
                             <span class="input-group-addon">
                                 <button type="submit" class="custom-btn btn btn-danger">완료</button>
                             </span>
                         </div>
                     </form>
-
+                    {% endfor %}
                 </ul>
             </div>
         </div>
