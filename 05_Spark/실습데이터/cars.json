@@ -1,0 +1,7 @@
+{"brand":"Ford", "models":{"name":"Fiesta", "price": "14260"}}
+{"brand":"Ford", "models":{"name": "Focus", "price": "18825"}}
+{"brand":"Ford", "models":{"name": "Mustang", "price": "26670"}}
+{"brand":"BMW", "models":{"name":"320", "price": "40250"}}
+{"brand":"BMW", "models":{"name":"X3", "price": "41000"}}
+{"brand":"BMW", "models":{"name":"X5", "price": "60700"}}
+{"brand":"Fiat", "models":{"name":"500", "price": "16495"}}
