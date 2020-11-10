@@ -1,0 +1,1188 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### DataFrame"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from pyspark     import SparkConf , SparkContext\n",
+    "from pyspark.sql import SQLContext"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "conf  = SparkConf().setMaster('local').setAppName('sparkApp')\n",
+    "spark = SparkContext(conf=conf)\n",
+    "# spark = SparkContext()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<pyspark.sql.context.SQLContext at 0x1dc9a76d710>"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sqlCtx = SQLContext(spark)\n",
+    "sqlCtx"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "- csv 파일을 이용한 dataframe 만들기"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "pyspark.sql.dataframe.DataFrame"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "orders = sqlCtx.read.csv('../data/orders.csv', \n",
+    "                         header=True , \n",
+    "                         inferSchema=True)\n",
+    "type( orders )"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "root\n",
+      " |-- OrderID: integer (nullable = true)\n",
+      " |-- CustomerID: integer (nullable = true)\n",
+      " |-- EmployeeID: integer (nullable = true)\n",
+      " |-- OrderDate: string (nullable = true)\n",
+      " |-- ShipperID: double (nullable = true)\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "orders.printSchema()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "['OrderID', 'CustomerID', 'EmployeeID', 'OrderDate', 'ShipperID']\n",
+      "<class 'list'>\n"
+     ]
+    }
+   ],
+   "source": [
+    "print( orders.columns )\n",
+    "print( type( orders.columns ) )"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+-------+-----------------+------------------+------------------+---------+------------------+\n",
+      "|summary|          OrderID|        CustomerID|        EmployeeID|OrderDate|         ShipperID|\n",
+      "+-------+-----------------+------------------+------------------+---------+------------------+\n",
+      "|  count|              196|               196|               196|      196|               196|\n",
+      "|   mean|          10345.5| 48.64795918367347|4.3520408163265305|     null|2.0714285714285716|\n",
+      "| stddev|56.72448031200168|25.621776513566466|  2.41651283366105|     null|0.7877263614433762|\n",
+      "|    min|            10248|                 2|                 1| 1/1/1997|               1.0|\n",
+      "|    max|            10443|                91|                 9| 9/9/1996|               3.0|\n",
+      "+-------+-----------------+------------------+------------------+---------+------------------+\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "orders.describe().show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+-------+-----------------+------------------+------------------+---------+------------------+\n",
+      "|summary|          OrderID|        CustomerID|        EmployeeID|OrderDate|         ShipperID|\n",
+      "+-------+-----------------+------------------+------------------+---------+------------------+\n",
+      "|  count|              196|               196|               196|      196|               196|\n",
+      "|   mean|          10345.5| 48.64795918367347|4.3520408163265305|     null|2.0714285714285716|\n",
+      "| stddev|56.72448031200168|25.621776513566466|  2.41651283366105|     null|0.7877263614433762|\n",
+      "|    min|            10248|                 2|                 1| 1/1/1997|               1.0|\n",
+      "|    25%|            10296|                25|                 2|     null|               1.0|\n",
+      "|    50%|            10345|                51|                 4|     null|               2.0|\n",
+      "|    75%|            10394|                69|                 6|     null|               3.0|\n",
+      "|    max|            10443|                91|                 9| 9/9/1996|               3.0|\n",
+      "+-------+-----------------+------------------+------------------+---------+------------------+\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "orders.summary().show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Row(OrderID=10248, CustomerID=90, EmployeeID=5, OrderDate='7/4/1996', ShipperID=3.0)"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "orders.first()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+-------+----------+\n",
+      "|OrderID|CustomerID|\n",
+      "+-------+----------+\n",
+      "|  10248|        90|\n",
+      "|  10249|        81|\n",
+      "|  10250|        34|\n",
+      "|  10251|        84|\n",
+      "|  10252|        76|\n",
+      "|  10253|        34|\n",
+      "|  10254|        14|\n",
+      "|  10255|        68|\n",
+      "|  10256|        88|\n",
+      "|  10257|        35|\n",
+      "|  10258|        20|\n",
+      "|  10259|        13|\n",
+      "|  10260|        55|\n",
+      "|  10261|        61|\n",
+      "|  10262|        65|\n",
+      "|  10263|        20|\n",
+      "|  10264|        24|\n",
+      "|  10265|         7|\n",
+      "|  10266|        87|\n",
+      "|  10267|        25|\n",
+      "+-------+----------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "# 검색 select()\n",
+    "orders.select(['OrderID' , 'CustomerID']).show()\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+-------+----------+----------+---------+---------+----------+\n",
+      "|OrderID|CustomerID|EmployeeID|OrderDate|ShipperID|newOrderID|\n",
+      "+-------+----------+----------+---------+---------+----------+\n",
+      "|  10248|        90|         5| 7/4/1996|      3.0|     10250|\n",
+      "|  10249|        81|         6| 7/5/1996|      1.0|     10251|\n",
+      "|  10250|        34|         4| 7/8/1996|      2.0|     10252|\n",
+      "|  10251|        84|         3| 7/8/1996|      1.0|     10253|\n",
+      "|  10252|        76|         4| 7/9/1996|      2.0|     10254|\n",
+      "|  10253|        34|         3|7/10/1996|      2.0|     10255|\n",
+      "|  10254|        14|         5|7/11/1996|      2.0|     10256|\n",
+      "|  10255|        68|         9|7/12/1996|      3.0|     10257|\n",
+      "|  10256|        88|         3|7/15/1996|      2.0|     10258|\n",
+      "|  10257|        35|         4|7/16/1996|      3.0|     10259|\n",
+      "|  10258|        20|         1|7/17/1996|      1.0|     10260|\n",
+      "|  10259|        13|         4|7/18/1996|      3.0|     10261|\n",
+      "|  10260|        55|         4|7/19/1996|      1.0|     10262|\n",
+      "|  10261|        61|         4|7/19/1996|      2.0|     10263|\n",
+      "|  10262|        65|         8|7/22/1996|      3.0|     10264|\n",
+      "|  10263|        20|         9|7/23/1996|      3.0|     10265|\n",
+      "|  10264|        24|         6|7/24/1996|      3.0|     10266|\n",
+      "|  10265|         7|         2|7/25/1996|      1.0|     10267|\n",
+      "|  10266|        87|         3|7/26/1996|      3.0|     10268|\n",
+      "|  10267|        25|         4|7/29/1996|      1.0|     10269|\n",
+      "+-------+----------+----------+---------+---------+----------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "# withColumn()\n",
+    "# orders.show()\n",
+    "orders.withColumn('newOrderID' , orders['OrderID']+2).show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+-------------+----------+----------+---------+---------+\n",
+      "|renameOrderID|CustomerID|EmployeeID|OrderDate|ShipperID|\n",
+      "+-------------+----------+----------+---------+---------+\n",
+      "|        10248|        90|         5| 7/4/1996|      3.0|\n",
+      "|        10249|        81|         6| 7/5/1996|      1.0|\n",
+      "|        10250|        34|         4| 7/8/1996|      2.0|\n",
+      "|        10251|        84|         3| 7/8/1996|      1.0|\n",
+      "|        10252|        76|         4| 7/9/1996|      2.0|\n",
+      "|        10253|        34|         3|7/10/1996|      2.0|\n",
+      "|        10254|        14|         5|7/11/1996|      2.0|\n",
+      "|        10255|        68|         9|7/12/1996|      3.0|\n",
+      "|        10256|        88|         3|7/15/1996|      2.0|\n",
+      "|        10257|        35|         4|7/16/1996|      3.0|\n",
+      "|        10258|        20|         1|7/17/1996|      1.0|\n",
+      "|        10259|        13|         4|7/18/1996|      3.0|\n",
+      "|        10260|        55|         4|7/19/1996|      1.0|\n",
+      "|        10261|        61|         4|7/19/1996|      2.0|\n",
+      "|        10262|        65|         8|7/22/1996|      3.0|\n",
+      "|        10263|        20|         9|7/23/1996|      3.0|\n",
+      "|        10264|        24|         6|7/24/1996|      3.0|\n",
+      "|        10265|         7|         2|7/25/1996|      1.0|\n",
+      "|        10266|        87|         3|7/26/1996|      3.0|\n",
+      "|        10267|        25|         4|7/29/1996|      1.0|\n",
+      "+-------------+----------+----------+---------+---------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "orders.withColumnRenamed('OrderID' , 'renameOrderID').show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+-------+----------+----------+---------+---------+\n",
+      "|OrderID|CustomerID|EmployeeID|OrderDate|ShipperID|\n",
+      "+-------+----------+----------+---------+---------+\n",
+      "|  10248|        90|         5| 7/4/1996|      3.0|\n",
+      "|  10249|        81|         6| 7/5/1996|      1.0|\n",
+      "|  10250|        34|         4| 7/8/1996|      2.0|\n",
+      "|  10251|        84|         3| 7/8/1996|      1.0|\n",
+      "|  10252|        76|         4| 7/9/1996|      2.0|\n",
+      "|  10253|        34|         3|7/10/1996|      2.0|\n",
+      "|  10254|        14|         5|7/11/1996|      2.0|\n",
+      "|  10255|        68|         9|7/12/1996|      3.0|\n",
+      "|  10256|        88|         3|7/15/1996|      2.0|\n",
+      "|  10257|        35|         4|7/16/1996|      3.0|\n",
+      "|  10258|        20|         1|7/17/1996|      1.0|\n",
+      "|  10259|        13|         4|7/18/1996|      3.0|\n",
+      "|  10260|        55|         4|7/19/1996|      1.0|\n",
+      "|  10261|        61|         4|7/19/1996|      2.0|\n",
+      "|  10262|        65|         8|7/22/1996|      3.0|\n",
+      "|  10263|        20|         9|7/23/1996|      3.0|\n",
+      "|  10264|        24|         6|7/24/1996|      3.0|\n",
+      "|  10265|         7|         2|7/25/1996|      1.0|\n",
+      "|  10266|        87|         3|7/26/1996|      3.0|\n",
+      "|  10267|        25|         4|7/29/1996|      1.0|\n",
+      "+-------+----------+----------+---------+---------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "orders.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+----------+-----+\n",
+      "|EmployeeID|count|\n",
+      "+----------+-----+\n",
+      "|         1|   29|\n",
+      "|         6|   18|\n",
+      "|         3|   31|\n",
+      "|         5|   11|\n",
+      "|         9|    6|\n",
+      "|         4|   40|\n",
+      "|         8|   27|\n",
+      "|         7|   14|\n",
+      "|         2|   20|\n",
+      "+----------+-----+\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "# groupBy() -  집계함수\n",
+    "orders.groupBy('EmployeeID').count().show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "pyspark.sql.dataframe.DataFrame"
+      ]
+     },
+     "execution_count": 25,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "orders = sqlCtx.read.csv('../data/cospi.csv', \n",
+    "                         header=True , \n",
+    "                         inferSchema=True)\n",
+    "type( orders )"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "root\n",
+      " |-- Date: string (nullable = true)\n",
+      " |-- Open: integer (nullable = true)\n",
+      " |-- High: integer (nullable = true)\n",
+      " |-- Low: integer (nullable = true)\n",
+      " |-- Close: integer (nullable = true)\n",
+      " |-- Volume: integer (nullable = true)\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "orders.printSchema()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+----------+-------+-------+-------+-------+------+\n",
+      "|      Date|   Open|   High|    Low|  Close|Volume|\n",
+      "+----------+-------+-------+-------+-------+------+\n",
+      "|2016-02-26|1180000|1187000|1172000|1172000|176906|\n",
+      "|2016-02-25|1172000|1187000|1172000|1179000|128321|\n",
+      "|2016-02-24|1178000|1179000|1161000|1172000|140407|\n",
+      "|2016-02-23|1179000|1189000|1173000|1181000|147578|\n",
+      "|2016-02-22|1190000|1192000|1166000|1175000|174075|\n",
+      "|2016-02-19|1187000|1195000|1174000|1190000|175889|\n",
+      "|2016-02-18|1203000|1203000|1178000|1187000|211795|\n",
+      "|2016-02-17|1179000|1201000|1169000|1185000|245929|\n",
+      "|2016-02-16|1158000|1179000|1157000|1168000|179087|\n",
+      "|2016-02-15|1154000|1160000|1144000|1154000|182471|\n",
+      "|2016-02-12|1130000|1151000|1122000|1130000|254115|\n",
+      "|2016-02-11|1118000|1137000|1118000|1130000|304899|\n",
+      "|2016-02-05|1156000|1169000|1156000|1164000|183280|\n",
+      "|2016-02-04|1150000|1161000|1148000|1156000|236429|\n",
+      "|2016-02-03|1150000|1152000|1137000|1146000|174381|\n",
+      "|2016-02-02|1161000|1166000|1147000|1156000|165420|\n",
+      "|2016-02-01|1152000|1163000|1151000|1163000|258194|\n",
+      "|2016-01-29|1140000|1150000|1116000|1150000|426238|\n",
+      "|2016-01-28|1164000|1168000|1139000|1145000|314154|\n",
+      "|2016-01-27|1126000|1175000|1126000|1175000|273707|\n",
+      "+----------+-------+-------+-------+-------+------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "orders.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "- filter(조건식)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+----------+-------+-------+-------+-------+------+\n",
+      "|      Date|   Open|   High|    Low|  Close|Volume|\n",
+      "+----------+-------+-------+-------+-------+------+\n",
+      "|2016-02-26|1180000|1187000|1172000|1172000|176906|\n",
+      "|2016-02-25|1172000|1187000|1172000|1179000|128321|\n",
+      "|2016-02-24|1178000|1179000|1161000|1172000|140407|\n",
+      "|2016-02-23|1179000|1189000|1173000|1181000|147578|\n",
+      "|2016-02-22|1190000|1192000|1166000|1175000|174075|\n",
+      "|2016-02-19|1187000|1195000|1174000|1190000|175889|\n",
+      "|2016-02-18|1203000|1203000|1178000|1187000|211795|\n",
+      "|2016-02-17|1179000|1201000|1169000|1185000|245929|\n",
+      "|2016-02-16|1158000|1179000|1157000|1168000|179087|\n",
+      "|2016-02-15|1154000|1160000|1144000|1154000|182471|\n",
+      "|2016-02-12|1130000|1151000|1122000|1130000|254115|\n",
+      "|2016-02-11|1118000|1137000|1118000|1130000|304899|\n",
+      "|2016-02-05|1156000|1169000|1156000|1164000|183280|\n",
+      "|2016-02-04|1150000|1161000|1148000|1156000|236429|\n",
+      "|2016-02-03|1150000|1152000|1137000|1146000|174381|\n",
+      "|2016-02-02|1161000|1166000|1147000|1156000|165420|\n",
+      "|2016-02-01|1152000|1163000|1151000|1163000|258194|\n",
+      "+----------+-------+-------+-------+-------+------+\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "# 날짜가 2월인 데이터만 필터링 한다면?\n",
+    "orders.filter(orders['Date'] >= '2016-02-01').show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 38,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+----------+-------+-------+\n",
+      "|      Date|   Open|  Close|\n",
+      "+----------+-------+-------+\n",
+      "|2016-01-05|1202000|1208000|\n",
+      "|2016-01-04|1260000|1205000|\n",
+      "|2015-12-30|1260000|1260000|\n",
+      "|2015-12-29|1265000|1254000|\n",
+      "|2015-12-28|1285000|1266000|\n",
+      "|2015-12-24|1295000|1285000|\n",
+      "|2015-12-23|1292000|1295000|\n",
+      "|2015-12-22|1280000|1292000|\n",
+      "|2015-12-21|1278000|1280000|\n",
+      "|2015-12-18|1265000|1278000|\n",
+      "|2015-12-17|1301000|1290000|\n",
+      "|2015-12-16|1278000|1299000|\n",
+      "|2015-12-15|1261000|1277000|\n",
+      "|2015-12-14|1273000|1261000|\n",
+      "|2015-12-11|1283000|1284000|\n",
+      "|2015-12-10|1263000|1283000|\n",
+      "|2015-12-09|1262000|1263000|\n",
+      "|2015-12-08|1262000|1262000|\n",
+      "|2015-12-07|1269000|1262000|\n",
+      "|2015-12-04|1275000|1269000|\n",
+      "+----------+-------+-------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "# 종가가 1200000 이상인 데이터만 필터링 한다면?\n",
+    "orders.filter(orders['Close'] > 1200000).select(['Date', 'Open', 'Close']).show() "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 40,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+----------+-------+-------+-------+-------+------+\n",
+      "|      Date|   Open|   High|    Low|  Close|Volume|\n",
+      "+----------+-------+-------+-------+-------+------+\n",
+      "|2016-02-18|1203000|1203000|1178000|1187000|211795|\n",
+      "|2016-01-06|1208000|1208000|1168000|1175000|359895|\n",
+      "|2016-01-05|1202000|1218000|1186000|1208000|207947|\n",
+      "|2015-10-15|1244000|1282000|1243000|1269000|243476|\n",
+      "|2015-10-14|1248000|1260000|1237000|1254000|174719|\n",
+      "|2015-07-31|1220000|1222000|1175000|1185000|370146|\n",
+      "|2015-07-28|1224000|1251000|1219000|1230000|252036|\n",
+      "|2015-07-27|1229000|1247000|1228000|1230000|198204|\n",
+      "|2015-07-24|1227000|1238000|1224000|1229000|194869|\n",
+      "|2015-07-23|1244000|1253000|1234000|1234000|198639|\n",
+      "|2015-07-22|1244000|1260000|1235000|1253000|266557|\n",
+      "|2015-07-16|1223000|1287000|1223000|1282000|217793|\n",
+      "|2015-07-15|1225000|1238000|1224000|1235000|166863|\n",
+      "|2015-07-09|1230000|1265000|1226000|1265000|273889|\n",
+      "|2015-07-08|1240000|1251000|1232000|1239000|215303|\n",
+      "|2015-07-07|1220000|1259000|1220000|1240000|236882|\n",
+      "+----------+-------+-------+-------+-------+------+\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "orders.filter( (orders['Open'] > 1200000) & (orders['Open'] < 1250000) ).show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 41,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+----------+-------+-------+-------+-------+------+\n",
+      "|      Date|   Open|   High|    Low|  Close|Volume|\n",
+      "+----------+-------+-------+-------+-------+------+\n",
+      "|2016-02-26|1180000|1187000|1172000|1172000|176906|\n",
+      "|2016-02-25|1172000|1187000|1172000|1179000|128321|\n",
+      "|2016-02-24|1178000|1179000|1161000|1172000|140407|\n",
+      "|2016-02-23|1179000|1189000|1173000|1181000|147578|\n",
+      "|2016-02-22|1190000|1192000|1166000|1175000|174075|\n",
+      "|2016-02-19|1187000|1195000|1174000|1190000|175889|\n",
+      "|2016-02-18|1203000|1203000|1178000|1187000|211795|\n",
+      "|2016-02-17|1179000|1201000|1169000|1185000|245929|\n",
+      "|2016-02-16|1158000|1179000|1157000|1168000|179087|\n",
+      "|2016-02-15|1154000|1160000|1144000|1154000|182471|\n",
+      "|2016-02-12|1130000|1151000|1122000|1130000|254115|\n",
+      "|2016-02-11|1118000|1137000|1118000|1130000|304899|\n",
+      "|2016-02-05|1156000|1169000|1156000|1164000|183280|\n",
+      "|2016-02-04|1150000|1161000|1148000|1156000|236429|\n",
+      "|2016-02-03|1150000|1152000|1137000|1146000|174381|\n",
+      "|2016-02-02|1161000|1166000|1147000|1156000|165420|\n",
+      "|2016-02-01|1152000|1163000|1151000|1163000|258194|\n",
+      "|2016-01-29|1140000|1150000|1116000|1150000|426238|\n",
+      "|2016-01-28|1164000|1168000|1139000|1145000|314154|\n",
+      "|2016-01-27|1126000|1175000|1126000|1175000|273707|\n",
+      "+----------+-------+-------+-------+-------+------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "orders.filter( (orders['Open'] > 1200000) | (orders['Open'] < 1250000) ).show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 43,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+----------+-------+-------+-------+-------+------+\n",
+      "|      Date|   Open|   High|    Low|  Close|Volume|\n",
+      "+----------+-------+-------+-------+-------+------+\n",
+      "|2016-02-26|1180000|1187000|1172000|1172000|176906|\n",
+      "|2016-02-25|1172000|1187000|1172000|1179000|128321|\n",
+      "|2016-02-24|1178000|1179000|1161000|1172000|140407|\n",
+      "|2016-02-23|1179000|1189000|1173000|1181000|147578|\n",
+      "|2016-02-22|1190000|1192000|1166000|1175000|174075|\n",
+      "|2016-02-19|1187000|1195000|1174000|1190000|175889|\n",
+      "|2016-02-18|1203000|1203000|1178000|1187000|211795|\n",
+      "|2016-02-17|1179000|1201000|1169000|1185000|245929|\n",
+      "|2016-02-16|1158000|1179000|1157000|1168000|179087|\n",
+      "|2016-02-15|1154000|1160000|1144000|1154000|182471|\n",
+      "|2016-02-12|1130000|1151000|1122000|1130000|254115|\n",
+      "|2016-02-05|1156000|1169000|1156000|1164000|183280|\n",
+      "|2016-02-04|1150000|1161000|1148000|1156000|236429|\n",
+      "|2016-02-03|1150000|1152000|1137000|1146000|174381|\n",
+      "|2016-02-02|1161000|1166000|1147000|1156000|165420|\n",
+      "|2016-02-01|1152000|1163000|1151000|1163000|258194|\n",
+      "|2016-01-27|1126000|1175000|1126000|1175000|273707|\n",
+      "|2016-01-26|1155000|1157000|1136000|1137000|151638|\n",
+      "|2016-01-25|1172000|1176000|1156000|1162000|159769|\n",
+      "|2016-01-22|1145000|1168000|1145000|1168000|146591|\n",
+      "+----------+-------+-------+-------+-------+------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Volume 300000 이하인 데이터만 필터링 한다면?\n",
+    "orders.filter( ~(orders['Volume'] > 300000 )).show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 44,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+----------+-------+-------+-------+-------+------+\n",
+      "|      Date|   Open|   High|    Low|  Close|Volume|\n",
+      "+----------+-------+-------+-------+-------+------+\n",
+      "|2016-02-26|1180000|1187000|1172000|1172000|176906|\n",
+      "+----------+-------+-------+-------+-------+------+\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "orders.filter( (orders['Date'] == '2016-02-26' )).show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### titanic_train.csv[실습]\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "pyspark.sql.dataframe.DataFrame"
+      ]
+     },
+     "execution_count": 45,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# data - titanic_train.csv\n",
+    "titanic = sqlCtx.read.csv('../data/titanic_train.csv', \n",
+    "                         header=True , \n",
+    "                         inferSchema=True)\n",
+    "type( titanic )"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 46,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+-----------+--------+------+--------------------+------+----+-----+-----+----------------+-------+-----+--------+\n",
+      "|PassengerId|Survived|Pclass|                Name|   Sex| Age|SibSp|Parch|          Ticket|   Fare|Cabin|Embarked|\n",
+      "+-----------+--------+------+--------------------+------+----+-----+-----+----------------+-------+-----+--------+\n",
+      "|          1|       0|     3|Braund, Mr. Owen ...|  male|22.0|    1|    0|       A/5 21171|   7.25| null|       S|\n",
+      "|          2|       1|     1|Cumings, Mrs. Joh...|female|38.0|    1|    0|        PC 17599|71.2833|  C85|       C|\n",
+      "|          3|       1|     3|Heikkinen, Miss. ...|female|26.0|    0|    0|STON/O2. 3101282|  7.925| null|       S|\n",
+      "|          4|       1|     1|Futrelle, Mrs. Ja...|female|35.0|    1|    0|          113803|   53.1| C123|       S|\n",
+      "|          5|       0|     3|Allen, Mr. Willia...|  male|35.0|    0|    0|          373450|   8.05| null|       S|\n",
+      "|          6|       0|     3|    Moran, Mr. James|  male|null|    0|    0|          330877| 8.4583| null|       Q|\n",
+      "|          7|       0|     1|McCarthy, Mr. Tim...|  male|54.0|    0|    0|           17463|51.8625|  E46|       S|\n",
+      "|          8|       0|     3|Palsson, Master. ...|  male| 2.0|    3|    1|          349909| 21.075| null|       S|\n",
+      "|          9|       1|     3|Johnson, Mrs. Osc...|female|27.0|    0|    2|          347742|11.1333| null|       S|\n",
+      "|         10|       1|     2|Nasser, Mrs. Nich...|female|14.0|    1|    0|          237736|30.0708| null|       C|\n",
+      "|         11|       1|     3|Sandstrom, Miss. ...|female| 4.0|    1|    1|         PP 9549|   16.7|   G6|       S|\n",
+      "|         12|       1|     1|Bonnell, Miss. El...|female|58.0|    0|    0|          113783|  26.55| C103|       S|\n",
+      "|         13|       0|     3|Saundercock, Mr. ...|  male|20.0|    0|    0|       A/5. 2151|   8.05| null|       S|\n",
+      "|         14|       0|     3|Andersson, Mr. An...|  male|39.0|    1|    5|          347082| 31.275| null|       S|\n",
+      "|         15|       0|     3|Vestrom, Miss. Hu...|female|14.0|    0|    0|          350406| 7.8542| null|       S|\n",
+      "|         16|       1|     2|Hewlett, Mrs. (Ma...|female|55.0|    0|    0|          248706|   16.0| null|       S|\n",
+      "|         17|       0|     3|Rice, Master. Eugene|  male| 2.0|    4|    1|          382652| 29.125| null|       Q|\n",
+      "|         18|       1|     2|Williams, Mr. Cha...|  male|null|    0|    0|          244373|   13.0| null|       S|\n",
+      "|         19|       0|     3|Vander Planke, Mr...|female|31.0|    1|    0|          345763|   18.0| null|       S|\n",
+      "|         20|       1|     3|Masselmani, Mrs. ...|female|null|    0|    0|            2649|  7.225| null|       C|\n",
+      "+-----------+--------+------+--------------------+------+----+-----+-----+----------------+-------+-----+--------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "titanic.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 47,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['PassengerId',\n",
+       " 'Survived',\n",
+       " 'Pclass',\n",
+       " 'Name',\n",
+       " 'Sex',\n",
+       " 'Age',\n",
+       " 'SibSp',\n",
+       " 'Parch',\n",
+       " 'Ticket',\n",
+       " 'Fare',\n",
+       " 'Cabin',\n",
+       " 'Embarked']"
+      ]
+     },
+     "execution_count": 47,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "titanic.columns"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "- count()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 48,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "891"
+      ]
+     },
+     "execution_count": 48,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "titanic.count()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+-----------+--------------------+\n",
+      "|PassengerId|                Name|\n",
+      "+-----------+--------------------+\n",
+      "|          1|Braund, Mr. Owen ...|\n",
+      "|          2|Cumings, Mrs. Joh...|\n",
+      "|          3|Heikkinen, Miss. ...|\n",
+      "|          4|Futrelle, Mrs. Ja...|\n",
+      "|          5|Allen, Mr. Willia...|\n",
+      "|          6|    Moran, Mr. James|\n",
+      "|          7|McCarthy, Mr. Tim...|\n",
+      "|          8|Palsson, Master. ...|\n",
+      "|          9|Johnson, Mrs. Osc...|\n",
+      "|         10|Nasser, Mrs. Nich...|\n",
+      "|         11|Sandstrom, Miss. ...|\n",
+      "|         12|Bonnell, Miss. El...|\n",
+      "|         13|Saundercock, Mr. ...|\n",
+      "|         14|Andersson, Mr. An...|\n",
+      "|         15|Vestrom, Miss. Hu...|\n",
+      "|         16|Hewlett, Mrs. (Ma...|\n",
+      "|         17|Rice, Master. Eugene|\n",
+      "|         18|Williams, Mr. Cha...|\n",
+      "|         19|Vander Planke, Mr...|\n",
+      "|         20|Masselmani, Mrs. ...|\n",
+      "+-----------+--------------------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "#  select 변수선택 PassengerId , Name\n",
+    "titanic.select(['PassengerId' , 'Name']).show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 54,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+-----------+--------------------+------+--------+\n",
+      "|PassengerId|                Name|   Sex|Survived|\n",
+      "+-----------+--------------------+------+--------+\n",
+      "|          2|Cumings, Mrs. Joh...|female|       1|\n",
+      "|          3|Heikkinen, Miss. ...|female|       1|\n",
+      "|          4|Futrelle, Mrs. Ja...|female|       1|\n",
+      "|          9|Johnson, Mrs. Osc...|female|       1|\n",
+      "|         10|Nasser, Mrs. Nich...|female|       1|\n",
+      "|         11|Sandstrom, Miss. ...|female|       1|\n",
+      "|         12|Bonnell, Miss. El...|female|       1|\n",
+      "|         16|Hewlett, Mrs. (Ma...|female|       1|\n",
+      "|         20|Masselmani, Mrs. ...|female|       1|\n",
+      "|         23|\"McGowan, Miss. A...|female|       1|\n",
+      "|         26|Asplund, Mrs. Car...|female|       1|\n",
+      "|         29|\"O'Dwyer, Miss. E...|female|       1|\n",
+      "|         32|Spencer, Mrs. Wil...|female|       1|\n",
+      "|         33|Glynn, Miss. Mary...|female|       1|\n",
+      "|         40|Nicola-Yarred, Mi...|female|       1|\n",
+      "|         44|Laroche, Miss. Si...|female|       1|\n",
+      "|         45|Devaney, Miss. Ma...|female|       1|\n",
+      "|         48|O'Driscoll, Miss....|female|       1|\n",
+      "|         53|Harper, Mrs. Henr...|female|       1|\n",
+      "|         54|Faunthorpe, Mrs. ...|female|       1|\n",
+      "+-----------+--------------------+------+--------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "# 성별이 여성인 PassengerId, Name, Sex, Survived 출력\n",
+    "# titanic.filter(titanic.Sex == 'female').select(['PassengerId' , 'Name', 'Sex', 'Survived']).show()\n",
+    "titanic.filter( (titanic.Sex == 'female') & (titanic.Survived == 1) ).select(['PassengerId' , 'Name', 'Sex', 'Survived']).show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 77,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+------+------------------+\n",
+      "|Pclass|         avg(Fare)|\n",
+      "+------+------------------+\n",
+      "|     1| 84.15468749999992|\n",
+      "|     2| 20.66218315217391|\n",
+      "|     3|13.675550101832997|\n",
+      "+------+------------------+\n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "pyspark.sql.group.GroupedData"
+      ]
+     },
+     "execution_count": 77,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# 선실등급 별 요금평균 확인한다면?\n",
+    "# class_grp = titanic.groupBy('Pclass')\n",
+    "# class_grp.count().show()\n",
+    "# class_grp.avg('Fare').show()\n",
+    "# type( class_grp )\n",
+    "\n",
+    "# 정렬 sort()\n",
+    "titanic.groupBy('Pclass').avg('Fare').sort('avg(Fare)'  , ascending=False).show()\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Spark DB연동"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from pyspark     import SparkConf , SparkContext\n",
+    "from pyspark.sql import SQLContext"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "conf  = SparkConf().setMaster('local').setAppName('sparkApp').set(\"spark.driver.extraClassPath\", \"../data/ojdbc6.jar\")\n",
+    "spark = SparkContext(conf=conf)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "\n",
+       "            <div>\n",
+       "                <p><b>SparkSession - in-memory</b></p>\n",
+       "                \n",
+       "        <div>\n",
+       "            <p><b>SparkContext</b></p>\n",
+       "\n",
+       "            <p><a href=\"http://DESKTOP-CS5B0E0:4040\">Spark UI</a></p>\n",
+       "\n",
+       "            <dl>\n",
+       "              <dt>Version</dt>\n",
+       "                <dd><code>v3.0.1</code></dd>\n",
+       "              <dt>Master</dt>\n",
+       "                <dd><code>local</code></dd>\n",
+       "              <dt>AppName</dt>\n",
+       "                <dd><code>sparkApp</code></dd>\n",
+       "            </dl>\n",
+       "        </div>\n",
+       "        \n",
+       "            </div>\n",
+       "        "
+      ],
+      "text/plain": [
+       "<pyspark.sql.session.SparkSession at 0x1acab4ee2e8>"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "from pyspark.sql import SQLContext\n",
+    "sqlCtx = SQLContext(spark)\n",
+    "spark = sqlCtx.sparkSession\n",
+    "spark"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sql_url = \"localhost\"\n",
+    "user = \"hr\"\n",
+    "password = \"hr\"\n",
+    "database = \"xe\"\n",
+    "table = \"SPARK_TITANIC\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+-----------+--------+------+--------------------+------+-----+-----+-----+------------+--------+---------------+--------+\n",
+      "|PASSENGERID|SURVIVED|PCLASS|                NAME|   SEX|  AGE|SIBSP|PARCH|      TICKET|    FARE|          CABIN|EMBARKED|\n",
+      "+-----------+--------+------+--------------------+------+-----+-----+-----+------------+--------+---------------+--------+\n",
+      "|        308|       1|     1|Penasco y Castell...|female|17.00|    1|    0|    PC 17758|108.9000|            C65|       C|\n",
+      "|        309|       0|     2| Abelson, Mr. Samuel|  male|30.00|    1|    0|   P/PP 3381| 24.0000|           null|       C|\n",
+      "|        310|       1|     1|Francatelli, Miss...|female|30.00|    0|    0|    PC 17485| 56.9292|            E36|       C|\n",
+      "|        311|       1|     1|Hays, Miss. Marga...|female|24.00|    0|    0|       11767| 83.1583|            C54|       C|\n",
+      "|        312|       1|     1|Ryerson, Miss. Em...|female|18.00|    2|    2|    PC 17608|262.3750|B57 B59 B63 B66|       C|\n",
+      "|        313|       0|     2|Lahtinen, Mrs. Wi...|female|26.00|    1|    1|      250651| 26.0000|           null|       S|\n",
+      "|        314|       0|     3|Hendekovic, Mr. I...|  male|28.00|    0|    0|      349243|  7.8958|           null|       S|\n",
+      "|        315|       0|     2|  Hart, Mr. Benjamin|  male|43.00|    1|    1|F.C.C. 13529| 26.2500|           null|       S|\n",
+      "|        316|       1|     3|Nilsson, Miss. He...|female|26.00|    0|    0|      347470|  7.8542|           null|       S|\n",
+      "|        317|       1|     2|Kantor, Mrs. Sina...|female|24.00|    1|    0|      244367| 26.0000|           null|       S|\n",
+      "|        318|       0|     2|Moraweck, Dr. Ernest|  male|54.00|    0|    0|       29011| 14.0000|           null|       S|\n",
+      "|        319|       1|     1|Wick, Miss. Mary ...|female|31.00|    0|    2|       36928|164.8667|             C7|       S|\n",
+      "|        320|       1|     1|Spedden, Mrs. Fre...|female|40.00|    1|    1|       16966|134.5000|            E34|       C|\n",
+      "|        321|       0|     3|  Dennis, Mr. Samuel|  male|22.00|    0|    0|   A/5 21172|  7.2500|           null|       S|\n",
+      "|        322|       0|     3|    Danoff, Mr. Yoto|  male|27.00|    0|    0|      349219|  7.8958|           null|       S|\n",
+      "|        323|       1|     2|Slayter, Miss. Hi...|female|30.00|    0|    0|      234818| 12.3500|           null|       Q|\n",
+      "|        324|       1|     2|Caldwell, Mrs. Al...|female|22.00|    1|    1|      248738| 29.0000|           null|       S|\n",
+      "|        325|       0|     3|Sage, Mr. George ...|  male| null|    8|    2|    CA. 2343| 69.5500|           null|       S|\n",
+      "|        326|       1|     1|Young, Miss. Mari...|female|36.00|    0|    0|    PC 17760|135.6333|            C32|       C|\n",
+      "|        327|       0|     3|Nysveen, Mr. Joha...|  male|61.00|    0|    0|      345364|  6.2375|           null|       S|\n",
+      "+-----------+--------+------+--------------------+------+-----+-----+-----+------------+--------+---------------+--------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "jdbc = spark.read.format(\"jdbc\")\\\n",
+    "                .option(\"driver\", \"oracle.jdbc.driver.OracleDriver\")\\\n",
+    "                .option(\"url\", \"jdbc:oracle:thin:@{}:1521:{}\".format(sql_url, database))\\\n",
+    "                .option(\"user\", user)\\\n",
+    "                .option(\"password\", password)\\\n",
+    "                .option(\"dbtable\", table)\\\n",
+    "                .load()\n",
+    "jdbc.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "pyspark.sql.dataframe.DataFrame"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "type(jdbc)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
