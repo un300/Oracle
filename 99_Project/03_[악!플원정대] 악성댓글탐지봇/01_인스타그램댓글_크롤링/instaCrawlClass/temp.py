@@ -5,8 +5,8 @@ path = './chrome_Driver/chromedriver.exe'
 driver = webdriver.Chrome(path)
 driver.get("https://instagram.com")
 
-a = driver.find_elements_by_css_selector('div.gr27e  ')
-b = a.find_elements_by_css_selector('div.EPjEi')
+b = driver.find_elements_by_css_selector('div.gr27e > div.EPjEi > form.HmktE > div > div.-MzZI')
+
 
 
 print(type(b))
