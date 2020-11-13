@@ -1,25 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a692bd13-3f71-4dba-a5f1-b2658275e09a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/02_예제 4-2 시각 [113p].py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/.ipynb_checkpoints/Untitled-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/.ipynb_checkpoints/Untitled-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/.ipynb_checkpoints/인스타용 크롤링 클래스 만들기-checkpoint.ipynb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/Untitled.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/Untitled.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/instaCrawlClass/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/instaCrawlClass/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/instaCrawlClass/.idea/instaCrawlClass.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/instaCrawlClass/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/instaCrawlClass/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/instaCrawlClass/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/instaCrawlClass/chrome_Driver/chromedriver.exe" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/instaCrawlClass/chrome_Driver/chromedriver_win32.zip" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/instaCrawlClass/debug.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/instaCrawlClass/instaCrawl.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/instaCrawlClass/main.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/instaCrawlClass/temp.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../../99_Project/03_[악!플원정대] 악성댓글탐지봇/01_인스타그램댓글_크롤링/인스타용 크롤링 클래스 만들기.ipynb" beforeDir="false" />
-    </list>
+    <list default="true" id="a692bd13-3f71-4dba-a5f1-b2658275e09a" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -91,10 +73,10 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="502" y="9" key="#02_예제_4-2_시각_[113p]/0.0.1536.824@0.0.1536.824" timestamp="1605135835488" />
-    <state x="547" y="166" key="FileChooserDialogImpl" timestamp="1605135813404">
+    <state x="547" y="166" key="FileChooserDialogImpl" timestamp="1605269190089">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="547" y="166" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1605135813404" />
+    <state x="547" y="166" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1605269190089" />
     <state width="1514" height="210" key="GridCell.Tab.0.bottom" timestamp="1605137141674">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
