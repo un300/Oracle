@@ -1,0 +1,72 @@
+
+
+onkeypress="if(event.keyCode==13){pressEnter('{{post_list.pk_num}}')}"
+    <script>
+    function pressEnter(post_num){
+        var post_pk_num = post_num
+        var comment_id  = $('#user_name' + post_pk_num).val();
+        var comment     = $('#commentContent' + post_pk_num).val();
+        var post_id     = '#commentBox' + post_pk_num
+
+
+        $.ajax({
+            url       : "{% url 'comment_create' %}",
+            type      : "POST",
+            dataType  : "json",
+            data      : {
+                'csrfmiddlewaretoken'   : '{{ csrf_token }}',
+                'post_pk_num'           : post_pk_num,
+                'writer'                : comment_id,
+                'comment'               : comment
+            },
+            success : function(response){
+                $('#commentContent' + post_pk_num).val("");
+                console.log(response.bad_comment_prob);
+                var txt = "";
+                txt += '<div class="box-comment" id="comment' + response.last_comment_pk_num + '">';
+                txt += '<img class="img-circle img-sm" src="' + response.current_id_image + '" alt="User Image">';
+                txt += '<div class="comment-text" id="commentBody">';
+                txt += '<span class="username">';
+                txt += '<a onclick="javascript:make_popup(' + response.last_comment_pk_num + ')" style="cursor:hand; cursor:pointer;">'
+                txt += '<font color="black">' + response.current_id + '</font>';
+                txt += '</a>'
+                txt += '<div id="bpopup' + response.last_comment_pk_num + '" style="display:none; background-color:white; width:350px; height:500px;">'
+                txt += '<div class="col">';
+                txt += '<div class="main">';
+                txt += '<h2>' + response.current_id + '</h2>';
+                txt += '<img src="' + response.current_id_image + '" width="150" height="150">'
+                txt += '<div class="profiles">';
+                txt += '<ul class="fa-ul">';
+                txt += '<li><i class="fa-li fa fa-user"></i><div class="user-detail">아이디: <span>' + response.user_name + '</span> </div></li>'
+                txt += '<li><i class="fa-li fa fa-envelope"></i><div class="user-detail">이메일: <span>' + response.user_email + '</span> </div></li>'
+                txt += '<li><i class="fa-li fa fa-comments"></i><div class="user-detail">악플게시수: <span style="color:red">' + response.penalty_count + '</span> </div></li>'
+                txt += '<li><i class="fa-li fa fa-comments"></i><div class="user-detail">댓글게시수: <span>' + response.comment_count + '</span> </div></li>'
+                txt += '<li><i class="fa-li fa fa-comments"></i><div class="user-detail">악플비율: <span style="color:red">' + response.bad_comment_ratio + '</span> </div></li>'
+                txt += '<li><i class="fa-li fa fa-comments"></i><div class="user-detail">자기소개: <span>' + response.about + '</span> </div></li>'
+                txt += '</ul>';
+                txt += '</div>';
+                txt += '</div>';
+                txt += '</div>';
+                txt += '</div>';
+                txt += '<span class="text-muted pull-right">' + response.created +'</span>';
+                txt += '<a href="javascript:report_url('+ response.last_comment_pk_num +')">';
+                txt += '<font size="0.05" font-size="xx-small" style="cursor:hand; cursor:pointer;">신고/이의제기 </font>';
+                txt += '</a>';
+                txt += '<a onclick="commentDelete('+ response.last_comment_pk_num +')">';
+                txt += '<font size="0.05" font-size="xx-small" style="cursor:hand;cursor:pointer;">삭제</font>';
+                txt += '</a>';
+                txt += '</span>';
+                txt += response.comment_content;
+                txt += '<span class="text-muted pull-right">';
+                txt += '<font color="blue">[악플확률 : ' + response.bad_comment_prob + ']</font>'
+                txt += '</span>'
+                txt += '</div>';
+                txt += '</div>';
+                $(post_id).append(txt);
+            },
+            error : function(request, status, error){
+                alert(error);
+            }
+        })
+    }
+    </script>

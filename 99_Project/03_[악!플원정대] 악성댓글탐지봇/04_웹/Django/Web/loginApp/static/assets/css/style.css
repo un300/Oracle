@@ -1,0 +1,65 @@
+.input-file-button{
+  padding: 6px 25px;
+  background-color:#FF6600;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+.filebox label {
+  display: inline-block;
+  padding: .55em .75em;
+  color: #444;
+  font-size: inherit;
+  line-height: normal;
+  vertical-align: middle;
+  background-color: #fff;
+  cursor: pointer;
+  border: 1px solid #b8b8b8;
+  border-radius: .25em;
+  -webkit-transition: background-color 0.2s;
+  transition: background-color 0.2s;
+}
+
+.filebox label:hover {
+  background-color: #b8b8b8;
+}
+
+.filebox label:active {
+  background-color: #367c36;
+}
+
+.filebox input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.filebox button {
+  display: inline-block;
+  padding: .55em .75em;
+  color: #444;
+  font-size: inherit;
+  line-height: normal;
+  vertical-align: middle;
+  background-color: #fff;
+  cursor: pointer;
+  border: 1px solid #b8b8b8;
+  border-radius: .25em;
+  -webkit-transition: background-color 0.2s;
+  transition: background-color 0.2s;
+}
+
+.filebox button:hover {
+  background-color: #b8b8b8;
+}
+
+.filebox button:active {
+  background-color: #367c36;
+}
+

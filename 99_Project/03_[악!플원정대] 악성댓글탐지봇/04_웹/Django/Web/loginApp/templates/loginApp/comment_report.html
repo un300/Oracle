@@ -1,0 +1,56 @@
+{% load static %}
+
+<!doctype html>
+<html lang="ko-kr">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>댓글 신고/이의제기</title>
+
+    <!-- Bootstrap -->
+    <link href='{% static "assets/css/custom2.css" %}' rel="stylesheet">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+<body>
+ <div class="container">
+
+    <h4 class="text-primary"> 댓글 신고 / 이의제기</h4>
+
+
+     <div class="box">
+        <div class="box2">
+            <h5> 해당 댓글을 어떻게 하시겠습니까?</h5>
+            <h6><font>{{report_comment}}</font></h6>
+        </div>
+            <form action="{% url 'comment_report_save' %}" method="post" id="send_post_key">
+              {% csrf_token %}
+              <input type="hidden" name="comment_pk_num" value="{{comment_pk_num}}">
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked>
+                    불량한 언어 사용으로 신고하겠습니다.
+                  </label>
+                </div>
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2">
+                    악플로 처리하는 것에 대해 이의를 제기합니다.
+                  </label><br>
+                </div>
+                  <h5> 고객님의 의견을 적어주세요.</h5>
+            <textarea  rows="5" class="form-control" name="customer_opinion"></textarea><br>
+
+              <button type="submit" class="btn btn-default btn-xs">제출</button>
+            </form>
+    </div>
+
+</body>
+</html>

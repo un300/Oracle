@@ -1,0 +1,204 @@
+.decor-default {
+    background-color: #ffffff;
+}
+.contact .controls {
+    position: relative;
+}
+.contact .controls .write {
+    position: absolute;
+    z-index: 2;
+    right: 20px;
+    bottom: -24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 5px #d8d8d8;
+    background: #39bee8 url("../../img/icon-edit.png") no-repeat 50% 50%;
+}
+.contact .controls .icon {
+    position: absolute;
+    z-index: 2;
+    top: 18px;
+    width: 16px;
+    height: 16px;
+    display: block;
+    cursor: pointer;
+}
+.contact .controls .cover {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    min-height: 150px;
+}
+.contact .cover {
+    position: relative;
+    overflow: hidden;
+    height: 500px;
+}
+.contact .controls .cont {
+    position: absolute;
+    z-index: 2;
+    top: 80px;
+    left: 0;
+    right: 0;
+    text-align: center;
+}
+.contact .controls .avatar {
+    display: inline-block;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    position: relative;
+    z-index: 2;
+}
+.contact .controls .name {
+    font-size: 20px;
+    line-height: 36px;
+    color: #ffffff;
+    margin: 0 0 10px;
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 0 3px rgba(0,0,0,.8);
+}
+.contact .controls .ui-mark {
+    display: inline-block;
+    border: 1px solid #ffffff;
+    font-size: 16px;
+    line-height: 32px;
+    color: #ffffff;
+    text-align: center;
+    margin: 0 2px;
+    padding: 0 26px;
+    border-radius: 2px;
+    position: relative;
+    z-index: 2;
+}
+.contact .controls .ui-mark a{
+    color: #ffffff;
+}
+
+.container-contact div[class^="col-"] {
+    position: relative;
+    min-height: 1px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 20px;
+    background: #fff;
+}
+.contact-description {
+    font-size: 16px;
+    line-height: 36px;
+}
+
+/*======== profile settings =================*/
+.nav.nav-tabs-custom-colored > li.active > a, 
+.nav.nav-tabs-custom-colored > li.active > a:hover, 
+.nav.nav-tabs-custom-colored > li.active > a:focus {
+  background-color: #39bbdb;
+  color: #fff;
+  cursor: pointer;
+}
+
+.tab-content.profile-page {
+  padding: 35px 15px;
+}
+
+.profile .user-info-left {
+  text-align: center;
+}
+
+.profile .user-info-left, 
+.profile .user-info-right {
+  padding: 10px 0;
+}
+
+.profile .user-info-left img {
+  border: 3px solid #fff;
+}
+
+.profile .user-info-left h2 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.3em;
+  margin-bottom: 20px;
+}
+
+.user-info-left .btn{
+    border-radius:0px;    
+}
+
+.profile .user-info-left ul.social a {
+  font-size: 20px;
+  color: #b9b9b9;
+}
+
+.profile .user-info-right {
+  border-left: 1px solid #ddd;
+  padding-left: 30px;
+}
+
+.profile h3, .activity h3, .settings h3 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1.2em;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.data-row .data-name, .data-row .data-value {
+  display: inline-block;
+  vertical-align: middle;
+  padding: 5px;
+}
+
+.data-row .data-name {
+  width: 12em;
+  color: #fff;
+  background-color: #39bbdb;
+  border-color: #4cae4c;
+  font-size: 0.9em;
+  vertical-align: top;
+}
+
+ul.activity-list > li:not(:last-child) {
+  border-bottom: 1px solid #ddd;
+}
+
+ul.activity-list > li {
+  padding: 15px;
+}
+
+ul.activity-list > li .activity-icon {
+  display: inline-block;
+  vertical-align: middle;
+  -moz-border-radius: 30px;
+  -webkit-border-radius: 30px;
+  border-radius: 30px;
+  width: 34px;
+  height: 34px;
+  background-color: #e4e4e4;
+  font-size: 16px;
+  color: #656565;
+  line-height: 34px;
+  text-align: center;
+  margin-right: 10px;
+}
+
+fieldset {
+  margin-bottom: 40px;
+}
+
+hr {
+  border-top-color: #ddd;
+}
+.info-content{
+  background: #fff;
+  padding: 10px;
+}
+.content-info div[class^="col-"] {
+    position: relative;
+    min-height: 1px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 20px !important;
+    background: #fff;
+}

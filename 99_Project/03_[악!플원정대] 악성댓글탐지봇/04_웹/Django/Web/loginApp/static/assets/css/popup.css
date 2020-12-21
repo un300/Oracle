@@ -1,0 +1,45 @@
+.col {
+    position : relative;
+    width : 400px;
+    height : 500px;
+    background : #ddd;
+}
+
+
+.main {
+    position : absolute;
+    width : 350px;
+    height : 450px;
+    background : #2DC3E8;
+    color : #fff;
+    margin : 25px; 0; 0; 25px;
+}
+
+.col .main h2 {
+    text-align : center;
+}
+
+.col .main img{
+    margin-left  :  28%;
+}
+
+.profiles .fa-ul li div {
+    margin-left : 22%
+}
+
+
+.fa-ul li div {
+    font-weight : 900;
+    font-size : 15px;
+}
+
+.fa-ul li i {
+    margin-left : 22%;
+}
+
+
+.fa-ul div span span{
+    text-align : center;
+    font-weight : 500
+}
+

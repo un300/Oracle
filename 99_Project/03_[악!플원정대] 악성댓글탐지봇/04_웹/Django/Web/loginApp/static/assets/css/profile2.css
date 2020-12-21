@@ -1,0 +1,74 @@
+
+
+
+.col {
+    position : absolute;
+    margin : auto;
+}
+
+h2 {
+    clear: both;
+    font-size: 1.8em;
+    margin-bottom: 10px;
+    padding: 10px 0 10px 30px;
+}
+
+h3 > span {
+    border-bottom: 2px solid #C2C2C2;
+    display: inline-block;
+    padding: 0 5px 5px;
+}
+
+/* USER PROFILE */
+#main h2 {
+    text-align : center;
+}
+
+.profiles {
+	padding: 15px 0;
+	border-top: 1px solid #e1e1e1;
+	border-bottom: 1px solid #e1e1e1;
+	margin: 15px 0;
+}
+.profiles ul {
+	padding: 0;
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-left: 40px;
+}
+.profiles ul > li {
+	margin: 3px 0;
+	line-height: 1.5;
+}
+.profiles ul > li > i {
+	padding-top: 2px;
+}
+.profiles ul > li > span {
+	color: #337ab7;
+}
+
+.main {
+    background: #FFFFFF;
+    -webkit-box-shadow: 1px 1px 2px 0 #CCCCCC;
+    -moz-box-shadow: 1px 1px 2px 0 #CCCCCC;
+    -o-box-shadow: 1px 1px 2px 0 #CCCCCC;
+    -ms-box-shadow: 1px 1px 2px 0 #CCCCCC;
+    box-shadow: 1px 1px 2px 0 #CCCCCC;
+    margin-bottom: 16px;
+    padding: 10px;
+}
+.main h2 {
+    margin: 0 0 15px -10px;
+    padding: 5px 0 5px 20px;
+    border-left: 10px solid #c2c2c2; /*7e8c8d*/
+}
+
+a {
+    color: #337ab7;
+	outline: none !important;
+}
+a:hover,
+a:focus {
+	color: #337ab7;
+}
+

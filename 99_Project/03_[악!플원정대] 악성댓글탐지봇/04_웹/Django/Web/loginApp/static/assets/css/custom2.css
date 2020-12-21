@@ -1,0 +1,39 @@
+
+
+.container{
+    background-color : #2DC3E8;
+}
+
+h4 {
+    text-align: center;
+    font-size: 3em;
+    }
+
+h5 {
+    font-size: 1.5em;
+    }
+
+h6 {
+    width: 200px;
+    border-color: black;
+    border-width: 10px;
+    border-style: solid;
+    padding: 20px 20px;
+    margin: 20px 20px;
+    margin-left : 40%;
+    display: table;
+    font-size: 1em;
+    }
+
+.box {
+    text-align: center;
+    }
+
+.box2{
+    background-color : #FFFFFF;
+}
+
+textarea {
+    height: 300px;
+    width: 400px;
+    }

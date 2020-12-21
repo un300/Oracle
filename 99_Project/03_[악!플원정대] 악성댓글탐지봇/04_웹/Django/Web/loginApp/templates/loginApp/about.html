@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+  <meta charset="utf-8">
+    <title>Day-Day</title>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="img/favicon.png">
+    <title>Day-Day</title>
+    <!-- Bootstrap core CSS -->
+    {% load static %}
+    <link href='{% static "bootstrap.3.3.6/css/bootstrap.min.css" %}' rel="stylesheet">
+    <link href='{% static "font-awesome.4.6.1/css/font-awesome.min.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/animate.min.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/timeline.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/cover.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/forms.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/buttons.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/style.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/div.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/file_upload.css" %}' rel="stylesheet">
+    <script src='{% static "assets/js/jquery.1.11.1.min.js" %}'></script>
+    <script src='{% static "bootstrap.3.3.6/js/bootstrap.min.js" %}'></script>
+    <script src='{% static "assets/js/custom.js" %}'></script>
+    <script src='{% static "assets/js/file_upload.js" %}'></script>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style>
+      h1{text-align:center;}
+      p{text-align:center;}
+      #btn_submit{
+        margin-left:300px;}
+
+      #btn1{
+        margin-left:475px;
+        margin-top:-125px;
+        }
+      #input-file-button{
+        display: inline-block;
+        padding: .55em .75em;
+        color: #444;
+        font-size: inherit;
+        line-height: normal;
+        vertical-align: middle;
+        background-color: #fff;
+        cursor: pointer;
+        border: 1px solid #b8b8b8;
+        border-radius: .25em;
+        -webkit-transition: background-color 0.2s;
+        transition: background-color 0.2s;
+        }
+      #input-file-button:hover {
+          background-color: #b8b8b8;
+        }
+
+      #input-file-button:active {
+        background-color: #367c36;
+        }
+    </style>
+  </head>
+  <body>
+
+
+  <div class="box">
+    <h1>자기소개 수정</h1>
+
+    <div class="widget-body bordered-top bordered-sky">
+      <form action="{% url 'about_change' %}" method="POST">{% csrf_token %}
+        <textarea placeholder="{{about}}" name="about_content" class="form-control"></textarea>
+        <br>
+        <input type="submit" value="제출" id="input-file-button">
+      </form>
+    </div>
+  </div>
+
+  <div class="p">
+    <button id="btn1" class="btn btn-blue shiny"
+            type="button" onclick="location.href='{% url 'photo_list' %}'" style="">나가기</button>
+  </div>
+
+  </body>
+</html>

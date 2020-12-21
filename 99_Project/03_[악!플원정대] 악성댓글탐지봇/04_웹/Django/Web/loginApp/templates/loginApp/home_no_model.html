@@ -1,0 +1,534 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="img/favicon.png">
+    <title>악!플원정대</title>
+    <!-- Bootstrap core CSS -->
+    {% load static %}
+    <link href='{% static "bootstrap.3.3.6/css/bootstrap.min.css" %}' rel="stylesheet">
+    <link href='{% static "font-awesome.4.6.1/css/font-awesome.min.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/animate.min.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/timeline.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/cover.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/forms.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/buttons.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/file_upload.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/style.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/popup.css" %}' rel="stylesheet">
+    <link href='{% static "assets/css/toggle.css" %}' rel="stylesheet">
+    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src='{% static "bootstrap.3.3.6/js/bootstrap.min.js" %}'></script>
+    <script src='{% static "assets/js/custom.js" %}'></script>
+    <script src='{% static "assets/js/file_upload.js" %}'></script>
+    <script src='{% static "assets/js/bpopup.js" %}'></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body class="animated fadeIn">
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-white navbar-fixed-top">
+      <input type="hidden" id="post_num_list" value="{{pk_num_list}}">
+      <input type="hidden" id="comment_list" value="{{comment_list}}">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="{% url 'photo_list' %}"><b>악!플원정대</b></a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="{% url 'introduce'%}">프로젝트 소개</a></li>
+            <li><a href="{% url 'logout' %}">로그아웃</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Begin page content -->
+    <div class="container page-content ">
+      <div class="row">
+        <!-- left links -->
+        <div class="col-md-3">
+          <div class="profile-nav">
+            <div class="widget">
+              <div class="widget-body">
+                <div class="user-heading round">
+                  <a href="#">
+                      <img src="{{user_image}}" alt="">
+                  </a>
+                  <div class="name" style="font-size:40px; color:white; font-family:Impact;">{{user_name}}</div>
+                  <br><br>
+
+                  <form action="{% url 'profile_img' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="filebox">
+                      <label for="input-profile"><i class="fa fa-upload"></i> 사진 선택</label>
+                      <input type="file" id="input-profile" name="profile_image" style="display:none"/>
+                      <button type="submit" class="btn filebox">사진 올리기</button>
+                    </div>
+
+                  </form>
+                </div>
+
+                <!-- 여기에 빈공간 -->
+                <div class="toggleWrap">
+                 <span>악성댓글탐지봇</span>
+                  <input type="checkbox" id="toggle-alarm">
+                  <div>
+                    <label for="toggle-alarm" onclick="javascript:model_on()">
+                      <span class="text"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+           <!-- 가은이 프로필 수정 -->
+           <div class="widget">
+              <div class="widget-header">
+                <h3 class="widget-caption"><i class="fa fa-user"></i> 프로필 소개</h3>
+              </div>
+              <div class="widget-body bordered-top bordered sky">
+                <p>{{user_db.about}}</p><br>
+                <button type="button" onclick="location.href={% url 'about' %}" class="btn filebox">수정</button>
+              </div>
+            </div>
+          </div>
+
+
+        </div><!-- end left links -->
+
+
+        <!-- center posts -->
+        <div class="col-md-6">
+          <div class="row">
+            <!-- left posts-->
+            <div class="col-md-12">
+              <div class="row">
+                <div class="col-md-12">
+                <!-- post state form -->
+                  <div class="box profile-info n-border-top">
+                    <form action="{% url 'posting' %}" method="POST" enctype="multipart/form-data">
+                      {% csrf_token %}
+                      <textarea name="comment" class="form-control input-lg p-text-area" rows="2" placeholder="당신의 일상을 공유하세요."></textarea>
+                      <div class="box-footer box-form">
+                        <button type="submit" class="btn btn-azure pull-right">게시</button>
+                        <ul class="nav nav-pills">
+                            <li>
+                              <input class="upload-name" value="파일선택" disabled="disabled">
+
+                              <label for="input-file">업로드</label>
+                              <input type="file" id="input-file" class="upload-hidden" name="image">
+                            </li>
+                        </ul>
+                      </div>
+                    </form>
+                  </div><!-- end post state form -->
+
+
+
+                  <!--   posts -->
+                  {% if post_lists %}
+                  {% for post_list in post_lists %}
+
+                  <div class="box box-widget" id="post{{post_list.pk_num}}">
+                    <div class="box-header with-border">
+                      <div class="user-block">
+                        <img class="img-circle" src="{{post_list.post_user_image}}" alt="User Image">
+                        <span class="username"><a href="#">{{post_list.author}}</a></span>
+                        <span class="description">{{post_list.created}}</span>
+                      </div>
+                    </div>
+
+                    <div class="box-body" style="display: block;">
+                      <img class="img-responsive show-in-modal" src="{{post_list.image}}" alt="Photo">
+                      <p>{{post_list.comment}}</p>
+                      <button type="button" class="btn btn-default btn-xs" onclick="javascript:like('{{post_list.pk_num}}')"><i class="fa fa-thumbs-o-up"></i>좋아요</button>
+                      {% if post_list.author == user_name%}
+                      <button type="button" class="btn btn-default btn-xs" onclick="javascript:post_erase('{{post_list.pk_num}}')"><i class="fa fa-trash"></i>삭제</button>
+                      {% endif %}
+                      <span class="pull-right text-muted">{{post_list.like}}likes</span>
+                    </div>
+
+
+                    <div class="box-footer box-comments" style="display: block;" id="commentBox{{post_list.pk_num}}">
+                      {% for comment in comment_list %}
+                      {% if post_list.pk_num == comment.post %}
+                      <div class="box-comment" id="comment{{comment.comment_pk_num}}">
+                        <input type="hidden" id="comment_pk_num{{comment.comment_pk_num}}" value="{{comment.comment_pk_num}}">
+                        <img class="img-circle img-sm" src="{{comment.comment_id_image}}" alt="User Image">
+                        <div class="comment-text" id="commentBody">
+                          <span class="username">
+                          <a onclick="javascript:make_popup('{{comment.comment_pk_num}}')">
+                            <font color="black" style="cursor:hand;cursor:pointer;">{{comment.comment_id}}</font>
+                          </a>
+                            {% for user_db in popup_db %}
+                            {% if user_db.user_name == comment.comment_id %}
+                            <div id="bpopup{{comment.comment_pk_num}}" style="display:none; background-color:white; width:350px; height:500px;">
+                              <div class="col">
+                                <div class="main">
+                                  <h2>{{user_db.user_name}}</h2>
+                                  <img src="/media/{{user_db.user_image}}" width="150" height="150">
+
+                                  <div class="profiles">
+                                    <ul class="fa-ul">
+                                      <li><i class="fa-li fa fa-user"></i><div class="user-detail">아이디: <span>{{user_db.user_name}}</span> </div></li>
+                                      <li><i class="fa-li fa fa-envelope"></i><div class="user-detail">이메일: <span>{{user_db.user_email}}</span> </div></li>
+                                      <li><i class="fa-li fa fa-comments"></i><div class="user-detail">악플게시수: <span style="color:red;">{{user_db.penalty_count}}</span> </div></li>
+                                      <li><i class="fa-li fa fa-comments"></i><div class="user-detail">댓글게시수: <span>{{user_db.comment_count}}</span> </div></li>
+                                      <li><i class="fa-li fa fa-comments"></i><div class="user-detail">악플비율: <span style="color:red;">{{user_db.bad_comment_ratio}}</span> </div></li>
+                                      <li><i class="fa-li fa fa-comments"></i><div class="user-detail">자기소개: <span>{{user_db.about}}</span></div></li>
+                                    </ul>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                          <span class="text-muted pull-right">{{comment.created}}</span>
+                          <a href="{% url 'comment_report' id=comment.comment_pk_num %}">
+                            <font size="0.05" font-size="xx-small" style="cursor:hand; cursor:pointer">신고/이의제기</font>
+                          </a>
+                          {% if comment.comment_id == user_name %}
+                          <a onclick="commentDelete('{{comment.comment_pk_num}}')">
+                            <font size="0.05" font-size="xx-small" style="cursor:hand; cursor:pointer">삭제</font>
+                          </a>
+                          {% endif %}
+                          </span>
+                          {{comment.comment}}
+                          <span class="text-muted pull-right">
+                            {% if comment.bad_comment_prob > "0.5" %}
+                            <font color="red">[악플확률 : {{comment.bad_comment_prob}}]</font>
+                            {% else %}
+                            [악플확률 : {{comment.bad_comment_prob}}]
+                            {% endif %}
+                          </span>
+                        </div>
+                      </div>
+                      {% endif %}
+                      {% endfor %}
+                    </div>
+
+
+                    <div class="box-footer" style="display: block;">
+                      <input type="hidden" id="user_name{{post_list.pk_num}}" value="{{user_name}}">
+                      <input type="hidden" id="pk_num" value="{{post_list.pk_num}}">
+                      <img class="img-responsive img-circle img-sm" src="{{user_image}}" alt="Alt Text">
+                      <div class="img-push">
+                        <input type="text" maxlength="400" class="form-control input-sm" placeholder="댓글입력" name="comment" id="commentContent{{post_list.pk_num}}" onkeypress="if(event.keyCode==13){pressEnter('{{post_list.pk_num}}')}">
+                      </div>
+                    </div>
+                  </div><!--  end posts-->
+                  {% endfor %}
+                  {% endif %}
+                </div>
+              </div>
+            </div><!-- end left posts-->
+          </div>
+        </div><!-- end  center posts -->
+
+
+
+
+        <!-- right posts -->
+        <div class="col-md-3">
+          <!-- Friends activity -->
+          <div class="widget">
+            <div class="widget-header">
+              <h3 class="widget-caption">악!플원정대 팀원 <i class="fa fa-user"></i></h3>
+
+
+            </div>
+            <div class="widget-body bordered-top bordered-sky">
+              <div class="card">
+                <div class="content">
+                   <ul class="list-unstyled team-members">
+                    <li>
+                      <div class="row">
+                        <div class="col-xs-3">
+                          <div class="avatar">
+                              <img src="{% static 'img/Friends/gaby.jpg'%}" alt="img" class="img-circle img-no-padding img-responsive">
+                          </div>
+                        </div>
+                        <div class="col-xs-9">
+                          <b><a href="#">CEO</a></b> HoJin Choi
+                          <br><b><a href="#">Team Leader</a> </b>:
+                          <span class="timeago" >Gaby</span>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="row">
+                        <div class="col-xs-3">
+                          <div class="avatar">
+                              <img src="{% static 'img/Friends/nikie.jpg'%}" alt="Circle Image" class="img-circle img-no-padding img-responsive">
+                          </div>
+                        </div>
+                        <div class="col-xs-9">
+                          <b><a href="#">CCO</a></b> GaEun Choi
+                          <br><b><a href="#">Team member</a></b>:
+                          <span class="timeago" >Nickie</span>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="row">
+                        <div class="col-xs-3">
+                          <div class="avatar">
+                              <img src="{% static 'img/Friends/alice.jpg'%}" alt="Circle Image" class="img-circle img-no-padding img-responsive">
+                          </div>
+                        </div>
+                        <div class="col-xs-9">
+                          <b><a href="#">CMO</a></b> SunLim Kim
+                          <br><b><a href="#">Team member</a></b>:
+                          <span class="timeago" >Kristen</span>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                              <div class="row">
+                                  <div class="col-xs-3">
+                                      <div class="avatar">
+                                          <img src="{% static 'img/Friends/sunday.jpg'%}" alt="Circle Image" class="img-circle img-no-padding img-responsive">
+                                      </div>
+                                  </div>
+
+                                <div class="col-xs-9">
+                                   <b><a href="#">COO</a></b> Sunyoung yun
+                                  <br><b><a href="#">Team member</a></b>:
+                                  <span class="timeago" >Sunday</span>
+                                </div>
+                              </div>
+                          </li>
+                          <li>
+                              <div class="row">
+                                  <div class="col-xs-3">
+                                      <div class="avatar">
+                                          <img src="{% static 'img/Friends/eric.jpg'%}" alt="Circle Image" class="img-circle img-no-padding img-responsive">
+                                      </div>
+                                  </div>
+
+                                <div class="col-xs-9">
+                                   <b><a href="#">CIO</a></b> HanJoon Kim
+                                  <br><b><a href="#">Team member</a></b>:
+                                  <span class="timeago" >Eric</span>
+                                </div>
+                              </div>
+                          </li>
+                          <li>
+                              <div class="row">
+                                  <div class="col-xs-3">
+                                      <div class="avatar">
+                                          <img src="{% static 'img/Friends/wonny.jpg'%}" alt="Circle Image" class="img-circle img-no-padding img-responsive">
+                                      </div>
+                                  </div>
+                                  <div class="col-xs-9">
+                                   <b><a href="#">CTO</a></b> JaeWon Lee
+                                  <br><b><a href="#">Team member</a></b>:
+                                  <span class="timeago" >Genesis</span>
+                                </div>
+                              </div>
+                          </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div><!-- End Friends activity -->
+
+          <!-- People You May Know -->
+
+        </div><!-- end right posts -->
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <p class="text-muted"> Copyright &copy; Company - All rights reserved </p>
+      </div>
+    </footer>
+
+
+    <script>
+    function pressEnter(post_num){
+      var post_pk_num = post_num
+      var comment_id  = $('#user_name' + post_pk_num).val();
+      var comment     = $('#commentContent' + post_pk_num).val();
+      var post_id     = '#commentBox' + post_pk_num
+
+      $.ajax({
+        url       : "{% url 'comment_create' %}",
+        type      : "POST",
+        dataType  : "json",
+        data      : {
+            'csrfmiddlewaretoken'   : '{{ csrf_token }}',
+            'post_pk_num'           : post_pk_num,
+            'writer'                : comment_id,
+            'comment'               : comment
+        },
+        success : function(response){
+            $('#commentContent' + post_pk_num).val("");
+            console.log(response.bad_comment_prob);
+            var txt = "";
+            txt += '<div class="box-comment" id="comment' + response.last_comment_pk_num + '">';
+            txt += '<img class="img-circle img-sm" src="' + response.current_id_image + '" alt="User Image">';
+            txt += '<div class="comment-text" id="commentBody">';
+            txt += '<span class="username">';
+            txt += '<a onclick="javascript:make_popup(' + response.last_comment_pk_num + ')" style="cursor:hand; cursor:pointer;">'
+            txt += '<font color="black">' + response.current_id + '</font>';
+            txt += '</a>'
+            txt += '<div id="bpopup' + response.last_comment_pk_num + '" style="display:none; background-color:white; width:350px; height:500px;">'
+            txt += '<div class="col">';
+            txt += '<div class="main">';
+            txt += '<h2>' + response.current_id + '</h2>';
+            txt += '<img src="' + response.current_id_image + '" width="150" height="150">'
+            txt += '<div class="profiles">';
+            txt += '<ul class="fa-ul">';
+            txt += '<li><i class="fa-li fa fa-user"></i><div class="user-detail">아이디: <span>' + response.user_name + '</span> </div></li>'
+            txt += '<li><i class="fa-li fa fa-envelope"></i><div class="user-detail">이메일: <span>' + response.user_email + '</span> </div></li>'
+            txt += '<li><i class="fa-li fa fa-comments"></i><div class="user-detail">악플게시수: <span style="color:red">' + response.penalty_count + '</span> </div></li>'
+            txt += '<li><i class="fa-li fa fa-comments"></i><div class="user-detail">댓글게시수: <span>' + response.comment_count + '</span> </div></li>'
+            txt += '<li><i class="fa-li fa fa-comments"></i><div class="user-detail">악플비율: <span style="color:red">' + response.bad_comment_ratio + '</span> </div></li>'
+            txt += '<li><i class="fa-li fa fa-comments"></i><div class="user-detail">자기소개: <span>' + response.about + '</span> </div></li>'
+            txt += '</ul>';
+            txt += '</div>';
+            txt += '</div>';
+            txt += '</div>';
+            txt += '</div>';
+            txt += '<span class="text-muted pull-right">' + response.created +'</span>';
+            txt += '<a href="javascript:report_url('+ response.last_comment_pk_num +')">';
+            txt += '<font size="0.05" font-size="xx-small" style="cursor:hand; cursor:pointer;">신고/이의제기 </font>';
+            txt += '</a>';
+            txt += '<a onclick="commentDelete('+ response.last_comment_pk_num +')">';
+            txt += '<font size="0.05" font-size="xx-small" style="cursor:hand;cursor:pointer;">삭제</font>';
+            txt += '</a>';
+            txt += '</span>';
+            txt += response.comment_content;
+            txt += '<span class="text-muted pull-right">';
+            txt += '<font color="blue">[악플확률 : ' + response.bad_comment_prob + ']</font>'
+            txt += '</span>'
+            txt += '</div>';
+            txt += '</div>';
+            $(post_id).append(txt);
+        },
+        error : function(request, status, error){
+            alert(error);
+        }
+      })
+    }
+    </script>
+
+  <script>
+    function commentDelete(comment_pk){
+      var comment_pk = comment_pk;
+      var delete_warning = confirm('댓글을 삭제하시겠습니까?')
+      if(delete_warning == true){
+        $.ajax({
+          type : "POST",
+          url : "{% url 'comment_delete' %}",
+          dataType : "json",
+          data    : {
+             'csrfmiddlewaretoken' : '{{csrf_token}}',
+             'comment_pk'          : comment_pk,
+          },
+          success : function(response){
+            var comment_box = "#comment" + response.comment_pk
+            console.log(comment_box);
+            $(comment_box).remove();
+          },
+          error : function(request, status, error){
+            alert(error);
+          }
+        })
+      }else{
+        console.log('삭제안한데');
+      }
+    }
+
+
+    function make_popup(id){
+      console.log(1);
+      var popup = "#bpopup" + id
+      console.log(popup);
+      $(popup).bPopup({
+        modalClose : true
+      })
+    }
+
+    function report_url(comment_pk){
+      var url = 'http://13.209.46.117:8000/comment_report/' + comment_pk + '/'
+      location.href = url
+    }
+
+    function model_on(){
+      var url = 'http://13.209.46.117:8000/home_post/';
+      location.href = url;
+    }
+
+    function post_erase(post_pk_num){
+      var post_pk_num = post_pk_num
+      var id = '#post' + post_pk_num
+      var delete_warning = confirm('게시물을 삭제하시겠습니까?')
+      if(delete_warning == true){
+        $.ajax({
+          type      : "POST",
+          url       : "{% url 'post_erase' %}",
+          dataType  : "json",
+          data      : {
+            'csrfmiddlewaretoken'   : '{{csrf_token}}',
+            'post_pk_num'           : post_pk_num,
+          },
+          success : function(response){
+            $(id).remove();
+          }
+        })
+      }
+      else{
+        console.log('삭제안해!');
+      }
+    }
+
+    function like(post_pk_num){
+      var post_pk_num = post_pk_num;
+      var current_user_name = '{{user_name}}'
+
+      $.ajax({
+        type     : "POST",
+        url      : '{% url 'like' %}',
+        dataType : "json",
+        data     : {
+          'csrfmiddlewaretoken' : '{{csrf_token}}',
+          'post_pk_num'         : post_pk_num,
+          'current_user_name'   : current_user_name,
+        },
+        success : function(response){
+          console.log(response.post_like_count);
+        }
+      })
+    }
+
+
+
+  </script>
+
+
+
+
+  </body>
+</html>
